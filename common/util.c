@@ -18,27 +18,17 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
 #include <pwd.h>
 #include <errno.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include <time.h>
 
-#include "port_after.h"
 
 #include "common.h"
 

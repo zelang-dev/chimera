@@ -19,6 +19,7 @@
  */
 #ifndef __CHIMERAGUI_H__
 #define __CHIMERAGUI_H__ 1
+#include <X11/Intrinsic.h>
 
 typedef struct ChimeraGUIP *ChimeraGUI;
 typedef struct ChimeraGUIScrollPosP *ChimeraGUIScrollPos;

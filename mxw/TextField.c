@@ -30,10 +30,7 @@
 #include <X11/Xmu/Xmu.h>
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #include "TextFieldP.h"
 
@@ -947,7 +944,7 @@ ConvertSelection(Widget aw, Atom * selection, Atom * target, Atom * type,
     unsigned long std_length;
 
     XmuConvertStandardSelection(aw, req->time, selection,
-      target, type, &std_targets,
+      target, type, (char **)&std_targets,
       &std_length, format);
 
     *value = XtMalloc((unsigned) sizeof(Atom) * (std_length + 1));
@@ -1027,7 +1024,7 @@ RequestSelection(Widget aw, XtPointer client, Atom * selection, Atom * type,
 
     ClearHighlight(w);
     savex = w->text.OldCursorX;
-    w->text.CursorPos = (int) client;
+    w->text.CursorPos = (__intptr_t) client;
 #ifdef DEBUG_TF
     printf("RequestSelection: inserting %s length=%d at pos: %d\n",
       (char *) value, (int) (*length), w->text.CursorPos);
@@ -1054,7 +1051,7 @@ InsertSelection(Widget aw, XEvent * event, String * params, Cardinal * num_param
 #endif
   XtGetSelectionValue(aw, XA_PRIMARY, XA_STRING,
     RequestSelection,
-    (XtPointer) pos, event->xbutton.time);
+	  (XtPointer)(__intptr_t)pos, event->xbutton.time);
 }
 
 

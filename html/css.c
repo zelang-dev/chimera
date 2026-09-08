@@ -18,20 +18,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
 #include <ctype.h>
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
+#include <string.h>
 
-#include "port_after.h"
 
 #include "common.h"
 
@@ -39,25 +33,22 @@
 
 #include "css.h"
 
-struct CSSPropertyP
-{
-  CSSRule cr;
-  char *name;
-  char *value;
+struct CSSPropertyP {
+	CSSRule cr;
+	char *name;
+	char *value;
 };
 
-struct CSSSelectorP
-{
-  char *tag;
-  char *id;
-  char *class;
-  char *pclass;
+struct CSSSelectorP {
+	char *tag;
+	char *id;
+	char *class;
+	char *pclass;
 };
 
-struct CSSRuleP
-{
-  GList selectors;      /* list of lists of CSSSelector's */
-  GList properties;     /* list of CSSProperty's */
+struct CSSRuleP {
+	GList selectors;      /* list of lists of CSSSelector's */
+	GList properties;     /* list of CSSProperty's */
 };
 
 /*
@@ -65,30 +56,28 @@ struct CSSRuleP
  * text can be inserted at any time have to be able to store and restore
  * buffer context.
  */
-struct CSSInputP
-{
-  char *b;
-  size_t blen;
-  char *cp;
-  char *ep;
+struct CSSInputP {
+	char *b;
+	size_t blen;
+	char *cp;
+	char *ep;
 };
 
-struct CSSContextP
-{
-  MemPool mp;
-  ChimeraContext cs;
+struct CSSContextP {
+	MemPool mp;
+	ChimeraContext cs;
 
-  /* parser bookkeeping */
-  GList inputs;
+	/* parser bookkeeping */
+	GList inputs;
 
-  /* The Result: a list of rules and properties */
-  GList rules;
-  GList props;
+	/* The Result: a list of rules and properties */
+	GList rules;
+	GList props;
 
-  /* callback information */
-  CSSProc proc;
-  void *closure;
-  ChimeraTask task;
+	/* callback information */
+	CSSProc proc;
+	void *closure;
+	ChimeraTask task;
 };
 
 typedef struct CSSInputP *CSSInput;
@@ -118,38 +107,32 @@ char *cp, *ep;
 int c;
 bool chkws;
 {
-  bool sq, dq, esc;
+	bool sq, dq, esc;
 
-  sq = false; /* in single quote? */
-  dq = false; /* in double quote? */
-  esc = false; /* escape mode? */
+	sq = false; /* in single quote? */
+	dq = false; /* in double quote? */
+	esc = false; /* escape mode? */
 
-  while (cp < ep)
-  {
-    if (esc) esc = false;
-    else if (*cp == '\\') esc = true;
-    else if (dq && *cp != '"') dq = false;
-    else if (sq && *cp != '\'') sq = false;
-    else if (*cp == '"') dq = true;
-    else if (*cp == '\'') sq = true;
-    else if (*cp == c) return(cp);
-    else if (chkws && isspace8(*cp)) return(cp);
-    else if (*cp == '{')
-    {
-      if ((cp = ParseToChar(cp + 1, ep, '}', false)) == NULL) return(NULL);
-    }
-    else if (*cp == '(')
-    {
-      if ((cp = ParseToChar(cp + 1, ep, ')', false)) == NULL) return(NULL);
-    }
-    else if (*cp == '[')
-    {
-      if ((cp = ParseToChar(cp + 1, ep, ']', false)) == NULL) return(NULL);
-    }
-    cp++;
-  }
+	while (cp < ep) {
+		if (esc) esc = false;
+		else if (*cp == '\\') esc = true;
+		else if (dq && *cp != '"') dq = false;
+		else if (sq && *cp != '\'') sq = false;
+		else if (*cp == '"') dq = true;
+		else if (*cp == '\'') sq = true;
+		else if (*cp == c) return(cp);
+		else if (chkws && isspace8(*cp)) return(cp);
+		else if (*cp == '{') {
+			if ((cp = ParseToChar(cp + 1, ep, '}', false)) == NULL) return(NULL);
+		} else if (*cp == '(') {
+			if ((cp = ParseToChar(cp + 1, ep, ')', false)) == NULL) return(NULL);
+		} else if (*cp == '[') {
+			if ((cp = ParseToChar(cp + 1, ep, ']', false)) == NULL) return(NULL);
+		}
+		cp++;
+	}
 
-  return(NULL);
+	return(NULL);
 }
 
 /*
@@ -164,25 +147,20 @@ ParseAt(css, ci)
 CSSContext css;
 CSSInput ci;
 {
-  while (ci->cp < ci->ep)
-  {
-    if (*ci->cp == '{')
-    {
-      if ((ci->cp = ParseToChar(ci->cp + 1, ci->ep, '}', false)) == NULL)
-      {
-	ci->cp = ci->ep;
-      }
-      return(true);
-    }
-    else if (*ci->cp == ';')
-    {
-      ci->cp++;
-      return(false);
-    }
-    ci->cp++;
-  }
+	while (ci->cp < ci->ep) {
+		if (*ci->cp == '{') {
+			if ((ci->cp = ParseToChar(ci->cp + 1, ci->ep, '}', false)) == NULL) {
+				ci->cp = ci->ep;
+			}
+			return(true);
+		} else if (*ci->cp == ';') {
+			ci->cp++;
+			return(false);
+		}
+		ci->cp++;
+	}
 
-  return(true);
+	return(true);
 }
 
 /*
@@ -194,28 +172,25 @@ static char *
 ParseSpace(s, e)
 char *s, *e;
 {
-  bool sc, ec, ic;
+	bool sc, ec, ic;
 
-  sc = false; /* possible start comment? */
-  ec = false; /* possible end comment? */
-  ic = false; /* in comment? */
+	sc = false; /* possible start comment? */
+	ec = false; /* possible end comment? */
+	ic = false; /* in comment? */
 
-  while (s < e)
-  {
-    if (ic)
-    {
-      if (ec && *s == '/') ic = false;
-      else if (*s == '*') ec = true;
-      else ec = false;
-    }
-    else if (sc && *s == '*') ic = true;
-    else if (*s == '/') sc = true;
-    else if (!isspace8(*s)) return(s);
-    else sc = false;
-    s++;
-  }
+	while (s < e) {
+		if (ic) {
+			if (ec && *s == '/') ic = false;
+			else if (*s == '*') ec = true;
+			else ec = false;
+		} else if (sc && *s == '*') ic = true;
+		else if (*s == '/') sc = true;
+		else if (!isspace8(*s)) return(s);
+		else sc = false;
+		s++;
+	}
 
-  return(NULL);
+	return(NULL);
 }
 
 static CSSProperty
@@ -224,47 +199,45 @@ MemPool mp;
 char *s;
 size_t slen;
 {
-  char *ep, *colon, *x;
-  CSSProperty prop;
+	char *ep, *colon, *x;
+	CSSProperty prop;
 
-  ep = s + slen;
+	ep = s + slen;
 
-  /* get rid of space in front of the declaration */
-  if ((s = ParseSpace(s, ep)) == NULL) return(NULL);
+	/* get rid of space in front of the declaration */
+	if ((s = ParseSpace(s, ep)) == NULL) return(NULL);
 
-  /* search for the required colon or white space */
-  if ((colon = ParseToChar(s, ep, ':', true)) == NULL) return(NULL);
+	/* search for the required colon or white space */
+	if ((colon = ParseToChar(s, ep, ':', true)) == NULL) return(NULL);
 
-  prop = (CSSProperty)MPCGet(mp, sizeof(struct CSSPropertyP));
-  
-  prop->name = (char *)MPGet(mp, colon - s + 1);
-  strncpy(prop->name, s, colon - s);
-  prop->name[colon - s] = '\0';
+	prop = (CSSProperty)MPCGet(mp, sizeof(struct CSSPropertyP));
 
-  /* May have only reached white space before */
-  if (*colon != ':')
-  {
-    /* search for the required colon */
-    if ((colon = ParseToChar(colon, ep, ':', false)) == NULL) return(NULL);
-  }
+	prop->name = (char *)MPGet(mp, colon - s + 1);
+	strncpy(prop->name, s, colon - s);
+	prop->name[colon - s] = '\0';
 
-  /* remove space in front of the value */
-  if ((s = ParseSpace(colon + 1, ep)) == NULL) return(NULL);
+	/* May have only reached white space before */
+	if (*colon != ':') {
+	  /* search for the required colon */
+		if ((colon = ParseToChar(colon, ep, ':', false)) == NULL) return(NULL);
+	}
 
-  prop->value = (char *)MPGet(mp, ep - s + 1);
+	/* remove space in front of the value */
+	if ((s = ParseSpace(colon + 1, ep)) == NULL) return(NULL);
 
-  /* Copy the value until end of input or whitespace is seen */
-  x = prop->value;
-  while (s < ep)
-  {
-    if (isspace8(*s)) break;
-    *x++ = *s++;
-  }
-  *x = '\0';
+	prop->value = (char *)MPGet(mp, ep - s + 1);
 
-  if (strlen(prop->name) == 0 || strlen(prop->value) == 0) return(NULL);
+	/* Copy the value until end of input or whitespace is seen */
+	x = prop->value;
+	while (s < ep) {
+		if (isspace8(*s)) break;
+		*x++ = *s++;
+	}
+	*x = '\0';
 
-  return(prop);
+	if (strlen(prop->name) == 0 || strlen(prop->value) == 0) return(NULL);
+
+	return(prop);
 }
 
 static GList
@@ -273,31 +246,29 @@ MemPool mp;
 char *s;
 size_t slen;
 {
-  char *last;
-  char *ep;
-  GList properties;
-  CSSProperty prop;
+	char *last;
+	char *ep;
+	GList properties;
+	CSSProperty prop;
 
-  properties = GListCreateX(mp);
+	properties = GListCreateX(mp);
 
-  ep = s + slen;
-  while (s < ep)
-  {
-    last = s;
-    s = ParseToChar(s, ep, ';', false);
-    if (s == NULL) s = ep;
+	ep = s + slen;
+	while (s < ep) {
+		last = s;
+		s = ParseToChar(s, ep, ';', false);
+		if (s == NULL) s = ep;
 
-    if (last < s && (prop = ParseProperty(mp, last, s - last)) != NULL)
-    {
-      GListAddTail(properties, prop);
-    }
+		if (last < s && (prop = ParseProperty(mp, last, s - last)) != NULL) {
+			GListAddTail(properties, prop);
+		}
 
-    s++;
-  }
+		s++;
+	}
 
-  if (GListGetHead(properties) == NULL) return(NULL);
+	if (GListGetHead(properties) == NULL) return(NULL);
 
-  return(properties);
+	return(properties);
 }
 
 static CSSSelector
@@ -306,43 +277,38 @@ MemPool mp;
 char *s;
 size_t slen;
 {
-  CSSSelector cs;
-  char *tag = NULL;
-  char *id = NULL;
-  char *class = NULL;
-  char *pclass = NULL;
-  char *ep;
-  char *t;
+	CSSSelector cs;
+	char *tag = NULL;
+	char *id = NULL;
+	char *class = NULL;
+	char *pclass = NULL;
+	char *ep;
+	char *t;
 
-  cs = (CSSSelector)MPCGet(mp, sizeof(struct CSSSelectorP));
+	cs = (CSSSelector)MPCGet(mp, sizeof(struct CSSSelectorP));
 
-  t = MPGet(mp, slen + 1);
-  strncpy(t, s, slen);
-  t[slen] = '\0';
-  s = t;
+	t = MPGet(mp, slen + 1);
+	strncpy(t, s, slen);
+	t[slen] = '\0';
+	s = t;
 
-  if (*s == '#') id = s + 1;
-  else if (*s == '.') class = s + 1;
-  else if (*s == ':') pclass = s + 1;
-  else
-  {
-    tag = s;
-    ep = s + slen;
-    while (s < ep)
-    {
-      if (*s == '#') { id = s + 1; *s = '\0'; break; }
-      else if (*s == '.') { class = s + 1; *s = '\0'; break; }
-      else if (*s == ':') { pclass = s + 1; *s = '\0'; break; }
-      else s++;
-    }
-  }
+	if (*s == '#') id = s + 1;
+	else if (*s == '.') class = s + 1;
+	else if (*s == ':') pclass = s + 1;
+	else {
+		tag = s;
+		ep = s + slen;
+		while (s < ep) {
+			if (*s == '#') { id = s + 1; *s = '\0'; break; } else if (*s == '.') { class = s + 1; *s = '\0'; break; } else if (*s == ':') { pclass = s + 1; *s = '\0'; break; } else s++;
+		}
+	}
 
-  cs->tag = tag;
-  cs->id = id;
-  cs->class = class;
-  cs->pclass = pclass;
+	cs->tag = tag;
+	cs->id = id;
+	cs->class = class;
+	cs->pclass = pclass;
 
-  return(cs);
+	return(cs);
 }
 
 static GList
@@ -351,44 +317,38 @@ MemPool mp;
 char *s;
 size_t slen;
 {
-  char *ep = s + slen;
-  char *cp;
-  char *last;
-  CSSSelector cs;
-  GList selectors;
+	char *ep = s + slen;
+	char *cp;
+	char *last;
+	CSSSelector cs;
+	GList selectors;
 
-  if ((s = ParseSpace(s, ep)) == NULL) return(NULL);
+	if ((s = ParseSpace(s, ep)) == NULL) return(NULL);
 
-  selectors = GListCreateX(mp);
+	selectors = GListCreateX(mp);
 
-  last = s;
-  cp = s;
-  while (cp < ep)
-  {
-    if (isspace8(*cp))
-    {
-      if ((cs = ParseSelector2(mp, last, cp - last)) != NULL)
-      {
-	GListAddTail(selectors, cs);
-      }
+	last = s;
+	cp = s;
+	while (cp < ep) {
+		if (isspace8(*cp)) {
+			if ((cs = ParseSelector2(mp, last, cp - last)) != NULL) {
+				GListAddTail(selectors, cs);
+			}
 
-      if ((cp = ParseSpace(cp, ep)) == NULL) break;
-      last = cp;
-    }
-    else cp++;
-  }
+			if ((cp = ParseSpace(cp, ep)) == NULL) break;
+			last = cp;
+		} else cp++;
+	}
 
-  if (last < cp)
-  {
-    if ((cs = ParseSelector2(mp, last, cp - last)) != NULL)
-    {
-      GListAddTail(selectors, cs);
-    }
-  }
+	if (last < cp) {
+		if ((cs = ParseSelector2(mp, last, cp - last)) != NULL) {
+			GListAddTail(selectors, cs);
+		}
+	}
 
-  if (GListGetHead(selectors) == NULL) return(NULL);
+	if (GListGetHead(selectors) == NULL) return(NULL);
 
-  return(selectors);
+	return(selectors);
 }
 
 /*
@@ -400,29 +360,27 @@ MemPool mp;
 char *s;
 size_t slen;
 {
-  GList slist, xlist;
-  char *ep;
-  char *last;
+	GList slist, xlist;
+	char *ep;
+	char *last;
 
-  slist = GListCreateX(mp);
+	slist = GListCreateX(mp);
 
-  ep = s + slen;
-  while (s < ep)
-  {
-    last = s;
-    s = ParseToChar(s, ep, ',', false);
-    if (s == NULL) s = ep;
+	ep = s + slen;
+	while (s < ep) {
+		last = s;
+		s = ParseToChar(s, ep, ',', false);
+		if (s == NULL) s = ep;
 
-    if (last < s && (xlist = ParseSelector1(mp, last, s - last)) != NULL)
-    {
-      GListAddTail(slist, xlist);
-    }
-    s++;
-  }
+		if (last < s && (xlist = ParseSelector1(mp, last, s - last)) != NULL) {
+			GListAddTail(slist, xlist);
+		}
+		s++;
+	}
 
-  if (GListGetHead(slist) == NULL) return(NULL);
+	if (GListGetHead(slist) == NULL) return(NULL);
 
-  return(slist);
+	return(slist);
 }
 
 /*
@@ -434,10 +392,10 @@ static int
 scompare(s1, s2)
 char *s1, *s2;
 {
-  if (s1 == s2) return(0);
-  if (s1 == NULL || s2 == NULL) return(-1);
-  if (strlen(s1) != strlen(s2)) return(-1);
-  return(strcasecmp(s1, s2));
+	if (s1 == s2) return(0);
+	if (s1 == NULL || s2 == NULL) return(-1);
+	if (strlen(s1) != strlen(s2)) return(-1);
+	return(strcasecmp(s1, s2));
 }
 
 /*
@@ -450,46 +408,44 @@ ParseRule(css, ci)
 CSSContext css;
 CSSInput ci;
 {
-  char *last;
-  GList slist;
-  GList plist;
-  CSSRule cr;
+	char *last;
+	GList slist;
+	GList plist;
+	CSSRule cr;
 
-  slist = GListCreateX(css->mp);
+	slist = GListCreateX(css->mp);
 
-  last = ci->cp;
-  if ((ci->cp = ParseToChar(ci->cp, ci->ep, '{', false)) == NULL)
-  {
-    ci->cp = ci->ep;
-    return(false);
-  }
+	last = ci->cp;
+	if ((ci->cp = ParseToChar(ci->cp, ci->ep, '{', false)) == NULL) {
+		ci->cp = ci->ep;
+		return(false);
+	}
 
-  slist = ParseSelector(css->mp, last, ci->cp - last);
+	slist = ParseSelector(css->mp, last, ci->cp - last);
 
-  ci->cp++;    /* need to get past the '{' from above */
-  last = ci->cp;
-  if ((ci->cp = ParseToChar(ci->cp, ci->ep, '}', false)) == NULL)
-  {
-    ci->cp = ci->ep;
-    return(false);
-  }
+	ci->cp++;    /* need to get past the '{' from above */
+	last = ci->cp;
+	if ((ci->cp = ParseToChar(ci->cp, ci->ep, '}', false)) == NULL) {
+		ci->cp = ci->ep;
+		return(false);
+	}
 
-  plist = ParseProperties(css->mp, last, ci->cp - last);
+	plist = ParseProperties(css->mp, last, ci->cp - last);
 
-  ci->cp++;
+	ci->cp++;
 
-  /*
-   * Return true because parse was successful.
-   */
-  if (plist == NULL || GListGetHead(plist) == NULL ||
-      slist == NULL || GListGetHead(slist) == NULL) return(true);
+	/*
+	 * Return true because parse was successful.
+	 */
+	if (plist == NULL || GListGetHead(plist) == NULL ||
+		slist == NULL || GListGetHead(slist) == NULL) return(true);
 
-  cr = (CSSRule)MPCGet(css->mp, sizeof(struct CSSRuleP));
-  cr->selectors = slist;
-  cr->properties = plist;
-  GListAddTail(css->rules, cr);
+	cr = (CSSRule)MPCGet(css->mp, sizeof(struct CSSRuleP));
+	cr->selectors = slist;
+	cr->properties = plist;
+	GListAddTail(css->rules, cr);
 
-  return(true);
+	return(true);
 }
 
 /*
@@ -501,37 +457,33 @@ static void
 ParseCSS(css)
 CSSContext css;
 {
-  CSSInput ci = (CSSInput)GListGetHead(css->inputs);
+	CSSInput ci = (CSSInput)GListGetHead(css->inputs);
 
-  if (ci == NULL)
-  {
-    if (css->proc == NULL) return;
+	if (ci == NULL) {
+		if (css->proc == NULL) return;
 
-    /*
-     * Should call callback here because this means all CSS text including
-     * remote text has been parsed.  Callback must be made from a toplevel
-     * task so create a task first.
-     */
-    return;
-  }
+		/*
+		 * Should call callback here because this means all CSS text including
+		 * remote text has been parsed.  Callback must be made from a toplevel
+		 * task so create a task first.
+		 */
+		return;
+	}
 
-  ci->cp = ParseSpace(ci->cp, ci->ep);
-  while (ci->cp != NULL && ci->cp < ci->ep)
-  {
-    if (*ci->cp == '@')
-    {
-      if (!ParseAt(css, ci)) return;
-    }
-    else if (!ParseRule(css, ci)) return;
-    
-    ci->cp = ParseSpace(ci->cp, ci->ep);
-  }
+	ci->cp = ParseSpace(ci->cp, ci->ep);
+	while (ci->cp != NULL && ci->cp < ci->ep) {
+		if (*ci->cp == '@') {
+			if (!ParseAt(css, ci)) return;
+		} else if (!ParseRule(css, ci)) return;
 
-  GListPop(css->inputs);
+		ci->cp = ParseSpace(ci->cp, ci->ep);
+	}
 
-  ParseCSS(css);
+	GListPop(css->inputs);
 
-  return;
+	ParseCSS(css);
+
+	return;
 }
 
 CSSContext
@@ -542,30 +494,30 @@ size_t blen;
 CSSProc proc;
 void *closure;
 {
-  CSSContext css;
-  MemPool mp;
-  CSSInput ci;
+	CSSContext css;
+	MemPool mp;
+	CSSInput ci;
 
-  mp = MPCreate();
-  css = (CSSContext)MPCGet(mp, sizeof(struct CSSContextP));
-  css->mp = mp;
-  css->cs = cs;
-  css->rules = GListCreateX(mp);
-  css->props = GListCreateX(mp);
-  css->inputs = GListCreateX(mp);
-  css->proc = proc;
-  css->closure = closure;
+	mp = MPCreate();
+	css = (CSSContext)MPCGet(mp, sizeof(struct CSSContextP));
+	css->mp = mp;
+	css->cs = cs;
+	css->rules = GListCreateX(mp);
+	css->props = GListCreateX(mp);
+	css->inputs = GListCreateX(mp);
+	css->proc = proc;
+	css->closure = closure;
 
-  ci = (CSSInput)MPCGet(mp, sizeof(struct CSSInputP));
-  ci->b = b;
-  ci->blen = blen;
-  ci->cp = b;
-  ci->ep = b + blen;
-  GListAddHead(css->inputs, ci);
+	ci = (CSSInput)MPCGet(mp, sizeof(struct CSSInputP));
+	ci->b = b;
+	ci->blen = blen;
+	ci->cp = b;
+	ci->ep = b + blen;
+	GListAddHead(css->inputs, ci);
 
-  ParseCSS(css);
+	ParseCSS(css);
 
-  return(css);
+	return(css);
 }
 
 /*
@@ -575,37 +527,35 @@ void
 CSSDestroyContext(css)
 CSSContext css;
 {
-  MPDestroy(css->mp);
-  return;
+	MPDestroy(css->mp);
+	return;
 }
 
 static bool
 SelectorListMatch(slist1, slist2)
 GList slist1, slist2;
 {
-  CSSSelector cs, ncs;
+	CSSSelector cs, ncs;
 
-  /*
-   * This code needs attention.  It compares two selector lists.
-   */
-  for (cs = (CSSSelector)GListGetHead(slist1),
-       ncs = (CSSSelector)GListGetHead(slist2);
-       cs != NULL && ncs != NULL;
-       cs = (CSSSelector)GListGetNext(slist1),
-       ncs = (CSSSelector)GListGetNext(slist2))
-  {
-    if (scompare(ncs->tag, cs->tag) != 0 ||
-	scompare(ncs->id, cs->id) != 0 ||
-	scompare(ncs->class, cs->class) != 0 ||
-	scompare(ncs->pclass, cs->pclass) != 0)
-    {
-      return(false);
-    }
-  }
+	/*
+	 * This code needs attention.  It compares two selector lists.
+	 */
+	for (cs = (CSSSelector)GListGetHead(slist1),
+		ncs = (CSSSelector)GListGetHead(slist2);
+		cs != NULL && ncs != NULL;
+		cs = (CSSSelector)GListGetNext(slist1),
+		ncs = (CSSSelector)GListGetNext(slist2)) {
+		if (scompare(ncs->tag, cs->tag) != 0 ||
+			scompare(ncs->id, cs->id) != 0 ||
+			scompare(ncs->class, cs->class) != 0 ||
+			scompare(ncs->pclass, cs->pclass) != 0) {
+			return(false);
+		}
+	}
 
-  if (ncs != NULL || cs != NULL) return(false);
+	if (ncs != NULL || cs != NULL) return(false);
 
-  return(true);
+	return(true);
 }
 
 /*
@@ -615,7 +565,7 @@ CSSSelector
 CSSCreateSelector(mp)
 MemPool mp;
 {
-  return((CSSSelector)MPCGet(mp, sizeof(struct CSSSelectorP)));
+	return((CSSSelector)MPCGet(mp, sizeof(struct CSSSelectorP)));
 }
 
 /*
@@ -626,11 +576,11 @@ CSSSetSelector(cs, tag, id, class, pclass)
 CSSSelector cs;
 char *tag, *id, *class, *pclass;
 {
-  cs->tag = tag;
-  cs->id = id;
-  cs->class = class;
-  cs->pclass = pclass;
-  return;
+	cs->tag = tag;
+	cs->id = id;
+	cs->class = class;
+	cs->pclass = pclass;
+	return;
 }
 
 /*
@@ -642,38 +592,32 @@ CSSContext css;
 GList selectors;
 char *name;
 {
-  CSSProperty p;
-  GList slist, xlist;
-  CSSSelector h;
+	CSSProperty p;
+	GList slist, xlist;
+	CSSSelector h;
 
-  if ((h = GListGetHead(selectors)) != GListGetTail(selectors))
-  {
-    slist = GListCreate();
-    GListAddHead(slist, h);
-  }
-  else slist = NULL;
+	if ((h = GListGetHead(selectors)) != GListGetTail(selectors)) {
+		slist = GListCreate();
+		GListAddHead(slist, h);
+	} else slist = NULL;
 
-  for (p = (CSSProperty)GListGetHead(css->props); p != NULL;
-       p = (CSSProperty)GListGetNext(css->props))
-  {
-    if (scompare(p->name, name) == 0)
-    {
-      for (xlist = (GList)GListGetHead(p->cr->selectors); xlist != NULL;
-	   xlist = (GList)GListGetNext(p->cr->selectors))
-      {
-	if ((slist != NULL && SelectorListMatch(xlist, slist)) ||
-	    SelectorListMatch(xlist, selectors))
-	{
-	  if (slist != NULL) GListDestroy(slist);
-	  return(p->value);
+	for (p = (CSSProperty)GListGetHead(css->props); p != NULL;
+		p = (CSSProperty)GListGetNext(css->props)) {
+		if (scompare(p->name, name) == 0) {
+			for (xlist = (GList)GListGetHead(p->cr->selectors); xlist != NULL;
+				xlist = (GList)GListGetNext(p->cr->selectors)) {
+				if ((slist != NULL && SelectorListMatch(xlist, slist)) ||
+					SelectorListMatch(xlist, selectors)) {
+					if (slist != NULL) GListDestroy(slist);
+					return(p->value);
+				}
+			}
+		}
 	}
-      }
-    }
-  }
 
-  if (slist != NULL) GListDestroy(slist);
+	if (slist != NULL) GListDestroy(slist);
 
-  return(NULL);
+	return(NULL);
 }
 
 /*
@@ -683,19 +627,18 @@ void
 CSSPrintSelectorList(slist)
 GList slist;
 {
-  CSSSelector s;
+	CSSSelector s;
 
-  for (s = (CSSSelector)GListGetHead(slist); s != NULL;
-       s = (CSSSelector)GListGetNext(slist))
-  {
-    if (s->tag != NULL) fprintf (stderr, "%s ", s->tag);
-    if (s->id != NULL) fprintf (stderr, "%s ", s->id);
-    if (s->class != NULL) fprintf (stderr, "%s ", s->class);
-    if (s->pclass != NULL) fprintf (stderr, "%s ", s->pclass);
-    fprintf (stderr, "\n");
-  }
+	for (s = (CSSSelector)GListGetHead(slist); s != NULL;
+		s = (CSSSelector)GListGetNext(slist)) {
+		if (s->tag != NULL) fprintf(stderr, "%s ", s->tag);
+		if (s->id != NULL) fprintf(stderr, "%s ", s->id);
+		if (s->class != NULL) fprintf(stderr, "%s ", s->class);
+		if (s->pclass != NULL) fprintf(stderr, "%s ", s->pclass);
+		fprintf(stderr, "\n");
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -705,33 +648,29 @@ void
 CSSPrint(css)
 CSSContext css;
 {
-  CSSRule cr;
-  CSSSelector cs;
-  GList slist;
-  CSSProperty prop;
+	CSSRule cr;
+	CSSSelector cs;
+	GList slist;
+	CSSProperty prop;
 
-  for (cr = (CSSRule)GListGetHead(css->rules); cr != NULL;
-       cr = (CSSRule)GListGetNext(css->rules))
-  {
-    for (slist = (GList)GListGetHead(cr->selectors); slist != NULL;
-	 slist = (GList)GListGetNext(cr->selectors))
-    {
-      for (cs = (CSSSelector)GListGetHead(slist); cs != NULL;
-	   cs = (CSSSelector)GListGetNext(slist))
-      {
-	printf ("%s ", cs->tag);
-      }
-      printf (", ");
-    }
+	for (cr = (CSSRule)GListGetHead(css->rules); cr != NULL;
+		cr = (CSSRule)GListGetNext(css->rules)) {
+		for (slist = (GList)GListGetHead(cr->selectors); slist != NULL;
+			slist = (GList)GListGetNext(cr->selectors)) {
+			for (cs = (CSSSelector)GListGetHead(slist); cs != NULL;
+				cs = (CSSSelector)GListGetNext(slist)) {
+				printf("%s ", cs->tag);
+			}
+			printf(", ");
+		}
 
-    printf ("{\n");
-    for (prop = (CSSProperty)GListGetHead(cr->properties); prop != NULL;
-	 prop = (CSSProperty)GListGetNext(cr->properties))
-    {
-      printf ("\t%s : %s;\n", prop->name, prop->value);
-    }
-    printf ("}\n");
-  }
+		printf("{\n");
+		for (prop = (CSSProperty)GListGetHead(cr->properties); prop != NULL;
+			prop = (CSSProperty)GListGetNext(cr->properties)) {
+			printf("\t%s : %s;\n", prop->name, prop->value);
+		}
+		printf("}\n");
+	}
 }
 
 #ifdef CSSDEBUG
@@ -743,47 +682,45 @@ main(argc, argv)
 int argc;
 char *argv[];
 {
-  CSSContext css;
-  FILE *fp;
-  char *b;
-  char *name;
-  struct stat st;
-  GList slist;
-  CSSSelector cs;
-  MemPool mp;
+	CSSContext css;
+	FILE *fp;
+	char *b;
+	char *name;
+	struct stat st;
+	GList slist;
+	CSSSelector cs;
+	MemPool mp;
 
-  if (argc < 2) exit(1);
+	if (argc < 2) exit(1);
 
-  if (stat(argv[1], &st) != 0) exit(1);
+	if (stat(argv[1], &st) != 0) exit(1);
 
-  if ((b = (char *)alloc_mem(st.st_size)) == NULL) exit(1);
+	if ((b = (char *)malloc(st.st_size)) == NULL) exit(1);
 
-  if ((fp = fopen(argv[1], "r")) == NULL) exit(1);
-  fread(b, 1, st.st_size, fp);
-  fclose(fp);
+	if ((fp = fopen(argv[1], "r")) == NULL) exit(1);
+	fread(b, 1, st.st_size, fp);
+	fclose(fp);
 
-  css = CSSParseBuffer(NULL, b, st.st_size, NULL, NULL); 
+	css = CSSParseBuffer(NULL, b, st.st_size, NULL, NULL);
 
-  mp = MPCreate();
-  slist = GListCreate();
+	mp = MPCreate();
+	slist = GListCreate();
 
-  cs = CSSCreateSelector(mp);
-  CSSSetSelector(cs, "H5", NULL, NULL, NULL);
-  GListAddHead(slist, cs);
+	cs = CSSCreateSelector(mp);
+	CSSSetSelector(cs, "H5", NULL, NULL, NULL);
+	GListAddHead(slist, cs);
 
-  name = "white-space";
+	name = "white-space";
 
-  if ((b = CSSFindProperty(css, slist, name)) != NULL)
-  {
-    printf ("%s == %s\n", name, b);
-  }
-  else printf ("%s not found\n", name);
+	if ((b = CSSFindProperty(css, slist, name)) != NULL) {
+		printf("%s == %s\n", name, b);
+	} else printf("%s not found\n", name);
 
-  CSSPrint(css);
+	CSSPrint(css);
 
-  CSSDestroyContext(css);
+	CSSDestroyContext(css);
 
-  exit(0);
+	exit(0);
 }
 
 #endif

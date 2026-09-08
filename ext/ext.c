@@ -17,54 +17,46 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include <signal.h>
 #include <errno.h>
 
-#include "port_after.h"
 
 #include "Chimera.h"
+#include "ChimeraSource.h"
+#include "ChimeraRender.h"
 
-typedef struct
-{
-  char *use;
-  char *incontent;
-  char *outcontent;
-  char *command;
+typedef struct {
+	char *use;
+	char *incontent;
+	char *outcontent;
+	char *command;
 } ConvertEntry;
 
-typedef struct
-{
-  MemPool mp;
-  ChimeraSink wp;
-  ChimeraRender wn;
-  ChimeraGUI wd;
-  ChimeraRender own;
-  ChimeraRenderHooks *orh;
-  ConvertEntry *c;
-  int fd[2];
-  size_t i;
+typedef struct {
+	MemPool mp;
+	ChimeraSink wp;
+	ChimeraRender wn;
+	ChimeraGUI wd;
+	ChimeraRender own;
+	ChimeraRenderHooks *orh;
+	ConvertEntry *c;
+	int fd[2];
+	size_t i;
 } ExtInfo;
 
-typedef struct
-{
-  MemPool mp;
-  GList list;
+typedef struct {
+	MemPool mp;
+	GList list;
 } ExtModuleInfo;
 
 static void ExtDestroy _ArgProto((void *));
-static void *ExtInit _ArgProto((ChimeraRender, void *));
+static void *ExtInit _ArgProto((ChimeraRender, void *, void *));
 static void ExtAdd _ArgProto((void *));
 static void ExtEnd _ArgProto((void *));
 static void ExtCancel _ArgProto((void *));
@@ -73,139 +65,119 @@ static GList ReadConvertFiles _ArgProto((MemPool, char *));
 /*
  * ExtDestroy
  */
-static void
-ExtDestroy(closure)
-void *closure;
-{
-  ExtInfo *ei = (ExtInfo *)closure;
-  MPDestroy(ei->mp);
-  return;
+static void ExtDestroy(void *closure) {
+	ExtInfo *ei = (ExtInfo *)closure;
+	MPDestroy(ei->mp);
+	return;
 }
 
 /*
  * ExtAdd
  */
-static void
-ExtAdd(closure)
-void *closure;
-{
-  ExtInfo *ei = (ExtInfo *)closure;
-  byte *data;
-  size_t len;
-  GList mimelist;
-  ssize_t rval;
+static void ExtAdd(void *closure) {
+	ExtInfo *ei = (ExtInfo *)closure;
+	byte *data;
+	size_t len;
+	GList mimelist;
+	ssize_t rval;
 
-  SinkGetData(ei->wp, &data, &len, &mimelist);
+	SinkGetData(ei->wp, &data, &len, (MIMEHeader *)&mimelist);
 
-  if (len <= ei->i) return;
+	if (len <= ei->i) return;
 
-  if ((rval = write(ei->fd[0], data + ei->i, len - ei->i)) <= 0)
-  {
-    perror("ext write add");
-    return;
-  }
+	if ((rval = write(ei->fd[0], data + ei->i, len - ei->i)) <= 0) {
+		perror("ext write add");
+		return;
+	}
 
-  ei->i += rval;
+	ei->i += rval;
 
-  return;
+	return;
 }
 
 /*
  * ExtEnd
  */
-static void
-ExtEnd(closure)
-void *closure;
-{
-  ExtInfo *ei = (ExtInfo *)closure;
-  byte *data;
-  size_t len;
-  GList mimelist;
-  ssize_t rval;
-  char buffer[BUFSIZ];
+static void ExtEnd(void *closure) {
+	ExtInfo *ei = (ExtInfo *)closure;
+	byte *data;
+	size_t len;
+	GList mimelist;
+	ssize_t rval;
+	char buffer[BUFSIZ];
 
-  SinkGetData(ei->wp, &data, &len, &mimelist);
+	SinkGetData(ei->wp, &data, &len, (MIMEHeader *)&mimelist);
 
-  while (len > ei->i)
-  {
-    if ((rval = write(ei->fd[0], data + ei->i, len - ei->i)) <= 0)
-    {
-      perror("ext write end");
-      return;
-    }
-    ei->i += rval;
-  }
+	while (len > ei->i) {
+		if ((rval = write(ei->fd[0], data + ei->i, len - ei->i)) <= 0) {
+			perror("ext write end");
+			return;
+		}
+		ei->i += rval;
+	}
 
-  close(ei->fd[0]);
+	close(ei->fd[0]);
 
-/*
-  while (read(ei->fd[1], buffer, sizeof(buffer)) > 0)
-      ;
-*/
+  /*
+	while (read(ei->fd[1], buffer, sizeof(buffer)) > 0)
+		;
+  */
 
-  close(ei->fd[1]);
+	close(ei->fd[1]);
 
-  return;
+	return;
 }
 
 /*
  * ExtCancel
  */
-static void
-ExtCancel(closure)
-void *closure;
-{
-  return;
+static void ExtCancel(void *closure) {
+	return;
 }
 
 /*
  * ExtInit
  */
-static void *
-ExtInit(wn, closure)
-ChimeraRender wn;
-void *closure;
-{
-  SinkData wp;
-  char *content;
-  ConvertEntry *c;
-  ExtModuleInfo *emi = (ExtModuleInfo *)closure;
-  ExtInfo *ei;
-  MemPool mp;
-  ChimeraRenderHooks *orh;
+static void *ExtInit(ChimeraRender wn, void *closure, void *data) {
+	(void)data;
+	ChimeraSink wp;
+	char *content;
+	ConvertEntry *c;
+	ExtModuleInfo *emi = (ExtModuleInfo *)closure;
+	ExtInfo *ei;
+	MemPool mp;
+	ChimeraRenderHooks *orh;
 
-  wp = RenderToSink(wn);
-  content = SinkGetInfo(wp, "content-type");
+	wp = RenderToSink(wn);
+	content = SinkGetInfo(wp, "content-type");
 
-  for (c = (ConvertEntry *)GListGetHead(emi->list); c != NULL;
-       c = (ConvertEntry *)GListGetNext(emi->list))
-  {
-    if (strcasecmp(content, c->incontent) == 0) break;
-  }
+	for (c = (ConvertEntry *)GListGetHead(emi->list); c != NULL;
+		c = (ConvertEntry *)GListGetNext(emi->list)) {
+		if (strcasecmp(content, c->incontent) == 0) break;
+	}
 
-  if (c == NULL) return(NULL);
+	if (c == NULL) return(NULL);
 
-/*
-  orh = WWWGetRenderHooks(WWWGetRenderContext(wn), c->outcontent);
-  if (orh == NULL) return(NULL);
-*/
+  /*
+	orh = WWWGetRenderHooks(WWWGetRenderContext(wn), c->outcontent);
+	if (orh == NULL) return(NULL);
+  */
 
-  mp = MPCreate();
-  ei = (ExtInfo *)MPCGet(mp, sizeof(ExtInfo));
-  ei->mp = mp;
-  ei->c = c;
-  ei->wd = RenderToGUI(wn);
-  ei->wp = wp;
-  ei->wn = wn;
-  ei->orh = orh;
+	mp = MPCreate();
+	ei = (ExtInfo *)MPCGet(mp, sizeof(ExtInfo));
+	ei->mp = mp;
+	ei->c = c;
+	ei->wd = RenderToGUI(wn);
+	ei->wp = wp;
+	ei->wn = wn;
+	ei->orh = orh;
 
-  if (PipeCommand(c->command, ei->fd) == -1)
-  {
-    MPDestroy(mp);
-    return(NULL);
-  }
+	if (PipeCommand(c->command, ei->fd) == -1) {
+		MPDestroy(mp);
+		return(NULL);
+	}
 
-  return(ei);
+	return(ei);
 }
 
 /*
@@ -216,101 +188,88 @@ void *closure;
  *
  * ~/.chimera_convert:~john/lib/convert:/local/infosys/lib/convert
  */
-GList
-ReadConvertFiles(mp, filelist)
-MemPool mp;
-char *filelist;
-{
-  ConvertEntry *c;
-  char *f;
-  char *filename;
-  char buffer[BUFSIZ];
-  char use[BUFSIZ];
-  char incontent[BUFSIZ];
-  char outcontent[BUFSIZ];
-  char command[BUFSIZ];
-  FILE *fp;
-  GList list;
+GList ReadConvertFiles(MemPool mp, char *filelist) {
+	ConvertEntry *c;
+	char *f;
+	char *filename;
+	char buffer[BUFSIZ];
+	char use[BUFSIZ];
+	char incontent[BUFSIZ];
+	char outcontent[BUFSIZ];
+	char command[BUFSIZ];
+	FILE *fp;
+	GList list;
 
-  list = GListCreateX(mp);
+	list = GListCreateX(mp);
 
-  f = filelist;
-  while ((filename = mystrtok(f, ':', &f)) != NULL)
-  {
-    filename = FixPath(mp, filename);
-    if (filename == NULL) continue;
+	f = filelist;
+	while ((filename = mystrtok(f, ':', &f)) != NULL) {
+		filename = FixPath(mp, filename);
+		if (filename == NULL) continue;
 
-    fp = fopen(filename, "r");
-    if (fp == NULL) continue;
+		fp = fopen(filename, "r");
+		if (fp == NULL) continue;
 
-    while (fgets(buffer, sizeof(buffer), fp) != NULL)
-    {
-      if (buffer[0] == '#' || buffer[0] == '\n') continue;
+		while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+			if (buffer[0] == '#' || buffer[0] == '\n') continue;
 
-      if (sscanf(buffer, "%s %s %s %[^\n]",
-                 use, incontent, outcontent, command) == 4)
-      {
-        c = (ConvertEntry *)MPCGet(mp, sizeof(ConvertEntry));
-        c->use = MPStrDup(mp, use);
-        c->incontent = MPStrDup(mp, incontent);
-        c->outcontent = MPStrDup(mp, outcontent);
-        c->command = strcasecmp(command, "none") == 0 ?
-            NULL:MPStrDup(mp, command);
+			if (sscanf(buffer, "%s %s %s %[^\n]",
+				use, incontent, outcontent, command) == 4) {
+				c = (ConvertEntry *)MPCGet(mp, sizeof(ConvertEntry));
+				c->use = MPStrDup(mp, use);
+				c->incontent = MPStrDup(mp, incontent);
+				c->outcontent = MPStrDup(mp, outcontent);
+				c->command = strcasecmp(command, "none") == 0 ?
+					NULL : MPStrDup(mp, command);
 
-	GListAddTail(list, c);
-      }
-    }
+				GListAddTail(list, c);
+			}
+		}
 
-    fclose(fp);
-  }
+		fclose(fp);
+	}
 
-  return(list);
+	return(list);
 }
 
 
-void
-InitModule_Ext(cres)
-ChimeraResources cres;
-{
-  ChimeraRenderHooks rh;
-  char *clist;
-  ExtModuleInfo *emi;
-  GList list;
-  MemPool mp;
-  ConvertEntry *c;
+void InitModule_Ext(ChimeraResources cres) {
+	ChimeraRenderHooks rh;
+	char *clist;
+	ExtModuleInfo *emi;
+	GList list;
+	MemPool mp;
+	ConvertEntry *c;
 
-  if ((clist = ResourceGetString(cres, "convert.convertFiles")) == NULL)
-  {
-    clist = "~/.chimera/convert";
-  }
+	if ((clist = ResourceGetString(cres, "convert.convertFiles")) == NULL) {
+		clist = "~/.chimera/convert";
+	}
 
-  mp = MPCreate();
+	mp = MPCreate();
 
-  list = ReadConvertFiles(mp, clist);
-  if (GListEmpty(list))
-  {
-    MPDestroy(mp);
-    return;
-  }
+	list = ReadConvertFiles(mp, clist);
+	if (GListEmpty(list)) {
+		MPDestroy(mp);
+		return;
+	}
 
-  emi = (ExtModuleInfo *)MPCGet(mp, sizeof(ExtModuleInfo));
-  emi->mp = mp;
-  emi->list = list;
+	emi = (ExtModuleInfo *)MPCGet(mp, sizeof(ExtModuleInfo));
+	emi->mp = mp;
+	emi->list = list;
 
-  for (c = (ConvertEntry *)GListGetHead(list); c != NULL;
-       c = (ConvertEntry *)GListGetNext(list))
-  {
-    memset(&rh, 0, sizeof(ChimeraRenderHooks));
-    rh.content = c->incontent;
-    rh.class_context = emi;
-    rh.class_destroy = ExtDestroy;
-    rh.init = ExtInit;
-    rh.add = ExtAdd;
-    rh.end = ExtEnd;
-    rh.destroy = ExtDestroy;
-    rh.cancel = ExtCancel;
-    RenderAddHooks(cres, &rh);
-  }
+	for (c = (ConvertEntry *)GListGetHead(list); c != NULL;
+		c = (ConvertEntry *)GListGetNext(list)) {
+		memset(&rh, 0, sizeof(ChimeraRenderHooks));
+		rh.content = c->incontent;
+		rh.class_context = emi;
+		rh.class_destroy = ExtDestroy;
+		rh.init = ExtInit;
+		rh.add = ExtAdd;
+		rh.end = ExtEnd;
+		rh.destroy = ExtDestroy;
+		rh.cancel = ExtCancel;
+		RenderAddHooks(cres, &rh);
+	}
 
-  return;
+	return;
 }

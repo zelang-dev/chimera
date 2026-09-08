@@ -18,25 +18,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_UNAME
 #include <sys/utsname.h>
-#endif
 
 #include <X11/IntrinsicP.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 
@@ -275,7 +265,7 @@ URLParts *up;
   if (up->hostname &&
 /*
  * Allow localhost and hostname proxies
- * 
+ *
       strcmp(up->hostname, "localhost") != 0 &&
       ! match_host_name(up->hostname, thishostname.nodename) &&
 */
@@ -321,7 +311,7 @@ char *c1, *c2;
 
   c1 = MPStrDup(mp, c1);
   c2 = MPStrDup(mp, c2);
- 
+
   error = true;
   for (cp = c1; *cp != '\0'; cp++)
   {
@@ -348,10 +338,10 @@ char *c1, *c2;
   }
   if (error) return(false);
 
-  if ((strlen(c1) == 1 && *c1 == '*') || 
+  if ((strlen(c1) == 1 && *c1 == '*') ||
       (strlen(c1) == strlen(c2) && strcasecmp(c1, c2) == 0))
   {
-    if ((strlen(p1) == 1 && *p1 == '*') || 
+    if ((strlen(p1) == 1 && *p1 == '*') ||
         (strlen(p1) == strlen(p2) && strcasecmp(p1, p2) == 0))
     {
       return(true);
@@ -404,7 +394,7 @@ char *base;
    * always be possible to get the schemes so that the source hooks
    * can be found to see if an alternate parsing method is going to
    * be used.
-   */ 
+   */
   uscheme = URLGetScheme(mp, url);
   if (base != NULL) bscheme = URLGetScheme(mp, base);
   else bscheme = NULL;
@@ -519,7 +509,7 @@ char *base;
     return(NULL);
   }
 
-  memcpy(&(wr->hooks), hooks, sizeof(ChimeraSourceHooks));      
+  memcpy(&(wr->hooks), hooks, sizeof(ChimeraSourceHooks));
 
   wr->scheme = URLGetScheme(wr->mp, wr->url);
 

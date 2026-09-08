@@ -24,6 +24,8 @@
 #define STAB_SIZE  4096         /* string table size */
 #define PSTK_SIZE  4096         /* pixel stack size */
 
+#include "imagep.h"
+#include "common.h"
 
 /*
  * gifState

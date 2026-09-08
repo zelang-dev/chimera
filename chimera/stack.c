@@ -17,22 +17,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 
@@ -172,7 +165,7 @@ StackHome(cs)
 ChimeraStack cs;
 {
   URLInfo *u;
-  
+
   if (GListGetTail(cs->urls) == GListGetHead(cs->urls)) return;
   if ((u = (URLInfo *)GListGetTail(cs->urls)) == NULL) return;
   StackOp(cs, RequestCreate(cs->wc->cres, u->url, NULL), StackHomeAction);
@@ -324,7 +317,7 @@ void *closure;
 
   url = SinkGetInfo(wp, "x-url");
   ctype = SinkGetInfo(wp, "content-type");
-  
+
   if (cs->rh != NULL) rh = cs->rh;
   else
   {
@@ -340,7 +333,7 @@ void *closure;
       return(-1);
     }
   }
-  
+
   if (cs->wn != NULL)
   {
     curstate = RenderGetState(cs->wn);
@@ -349,7 +342,7 @@ void *closure;
     cs->wn = NULL;
   }
   else curstate = NULL;
-  
+
   if (cs->wp != NULL) SinkDestroy(cs->wp);
   cs->wp = cs->pending;
   cs->pending = NULL;

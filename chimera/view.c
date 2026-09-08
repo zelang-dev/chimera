@@ -17,17 +17,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
@@ -36,13 +30,12 @@
 #include <X11/Xaw/Command.h>
 #include <X11/Xaw/Paned.h>
 
-#include "port_after.h"
 
 #include "TextField.h"
 
 #include "ChimeraP.h"
 
-typedef struct 
+typedef struct
 {
   MemPool mp;
   ChimeraSink wp;
@@ -88,14 +81,14 @@ char *content;
   {
     filename = FixPath(mp, filename);
     if (filename == NULL) continue;
-   
+
     fp = fopen(filename, "r");
     if (fp == NULL) continue;
-    
+
     while (fgets(buffer, sizeof(buffer), fp))
     {
       if (buffer[0] == '#' || buffer[0] == '\n') continue;
-      
+
       if (sscanf(buffer, "%[^;]%[;]%[^;\n]", ctype, junk, command) == 3)
       {
 	if (RequestMatchContent(tmp, ctype, content))
@@ -146,7 +139,7 @@ void *closure;
     {
       if ((path = getenv("PATH")) == NULL) path = "";
     }
-    
+
     finallen = strlen(" ; rm &") + strlen(path) + strlen(filename) * 2 +
 	strlen(vi->command) + strlen("PATH=") + 1;
     final = (char *)MPGet(vi->mp, finallen);
@@ -274,7 +267,7 @@ ViewInfo *vi;
 			       NULL);
 
   paned = XtCreateManagedWidget("paned",
-                                panedWidgetClass, vi->pop, 
+                                panedWidgetClass, vi->pop,
                                 NULL, 0);
 
   box = XtCreateManagedWidget("box", boxWidgetClass, paned, NULL, 0);

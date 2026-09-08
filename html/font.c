@@ -19,15 +19,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
 
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "html.h"
 
@@ -56,22 +53,20 @@
 #define XLFD_COUNT 13
 
 /* Silly font information */
-struct HTMLFontP
-{
-  bool        fixed;            /* fixed width? */
-  int         weight;           /* bold, medium, ... */
-  int         slant;            /* italic, regular, ... */
-  int         scale;            /* scale of font */
-  int         size;             /* size of font */
-  XFontStruct *xfi;             /* real font info */
+struct HTMLFontP {
+	bool        fixed;            /* fixed width? */
+	int         weight;           /* bold, medium, ... */
+	int         slant;            /* italic, regular, ... */
+	int         scale;            /* scale of font */
+	int         size;             /* size of font */
+	XFontStruct *xfi;             /* real font info */
 };
 
-struct HTMLFontListP
-{
-  HTMLFont       fontInfo;
-  int            count;
-  int            scale[FONT_SCALE_COUNT];
-  char           **names;
+struct HTMLFontListP {
+	HTMLFont       fontInfo;
+	int            count;
+	int            scale[FONT_SCALE_COUNT];
+	char **names;
 };
 
 static void ParseXLFD _ArgProto((MemPool, char *, HTMLFont));
@@ -90,40 +85,34 @@ MemPool mp;
 char *xlfd;
 HTMLFont lfi;
 {
-  char *fields[XLFD_COUNT];
-  int i;
-  char *t;
+	char *fields[XLFD_COUNT];
+	int i;
+	char *t;
 
-  t = MPStrDup(mp, xlfd);
-  t++;
-  fields[0] = t;
-  for (i = 1; i < XLFD_COUNT; t++)
-  {
-    if (*t == '-')
-    {
-      *t = '\0';
-      fields[i++] = t + 1;
-    }
-  }
+	t = MPStrDup(mp, xlfd);
+	t++;
+	fields[0] = t;
+	for (i = 1; i < XLFD_COUNT; t++) {
+		if (*t == '-') {
+			*t = '\0';
+			fields[i++] = t + 1;
+		}
+	}
 
-  if (strcmp(fields[XLFD_WEIGHT_NAME], "bold") == 0 ||
-      strcmp(fields[XLFD_WEIGHT_NAME], "demi") == 0 ||
-      strcmp(fields[XLFD_WEIGHT_NAME], "demibold") == 0) 
-  {
-    lfi->weight = 1;
-  }  
-  else lfi->weight = 0;
+	if (strcmp(fields[XLFD_WEIGHT_NAME], "bold") == 0 ||
+		strcmp(fields[XLFD_WEIGHT_NAME], "demi") == 0 ||
+		strcmp(fields[XLFD_WEIGHT_NAME], "demibold") == 0) {
+		lfi->weight = 1;
+	} else lfi->weight = 0;
 
-  lfi->size = atoi(fields[XLFD_PIXEL_SIZE]);
+	lfi->size = atoi(fields[XLFD_PIXEL_SIZE]);
 
-  if (strcmp(fields[XLFD_SLANT], "i") == 0 ||
-      strcmp(fields[XLFD_SLANT], "o") == 0)
-  {
-    lfi->slant = 1;
-  }
-  else lfi->slant = 0;
+	if (strcmp(fields[XLFD_SLANT], "i") == 0 ||
+		strcmp(fields[XLFD_SLANT], "o") == 0) {
+		lfi->slant = 1;
+	} else lfi->slant = 0;
 
-  return;
+	return;
 }
 
 /*
@@ -135,12 +124,11 @@ HTMLClass lc;
 HTMLFontList fl;
 int i;
 {
-  if (fl->fontInfo[i].xfi == NULL)
-  {
-    fl->fontInfo[i].xfi = XLoadQueryFont(lc->dpy, fl->names[i]);
-    if (fl->fontInfo[i].xfi == NULL) return(lc->defaultFont);
-  }
-  return(fl->fontInfo[i].xfi);
+	if (fl->fontInfo[i].xfi == NULL) {
+		fl->fontInfo[i].xfi = XLoadQueryFont(lc->dpy, fl->names[i]);
+		if (fl->fontInfo[i].xfi == NULL) return(lc->defaultFont);
+	}
+	return(fl->fontInfo[i].xfi);
 }
 
 /*
@@ -151,73 +139,64 @@ HTMLGetFont(li, env)
 HTMLInfo li;
 HTMLEnv env;
 {
-  int i;
-  HTMLClass lc = li->lc;
-  HTMLFont lfi;
-  HTMLFontList fl;
+	int i;
+	HTMLClass lc = li->lc;
+	HTMLFont lfi;
+	HTMLFontList fl;
 
-  lfi = env->fi;
-  if (lfi == NULL)
-  {
-    lfi = HTMLDupFont(li,li->cfi);
-    env->fi = lfi;
-  }
+	lfi = env->fi;
+	if (lfi == NULL) {
+		lfi = HTMLDupFont(li, li->cfi);
+		env->fi = lfi;
+	}
 
-  /*
-   * Check spacing
-   */
-  if (lfi->fixed) fl = lc->fixed;
-  else fl = lc->prop;
+	/*
+	 * Check spacing
+	 */
+	if (lfi->fixed) fl = lc->fixed;
+	else fl = lc->prop;
 
-  /*
-   * Check slant, size, and weight
-   */
-  for (i = 0; i < fl->count; i++)
-  {
-    if (((lfi->weight > 0) == (fl->fontInfo[i].weight > 0)) &&
-	((lfi->slant > 0) == (fl->fontInfo[i].slant > 0)) &&
-	fl->scale[lfi->scale] == fl->fontInfo[i].size)
-    {
-      return(GetFont(lc, fl, i));
-    }
-  }
+	/*
+	 * Check slant, size, and weight
+	 */
+	for (i = 0; i < fl->count; i++) {
+		if (((lfi->weight > 0) == (fl->fontInfo[i].weight > 0)) &&
+			((lfi->slant > 0) == (fl->fontInfo[i].slant > 0)) &&
+			fl->scale[lfi->scale] == fl->fontInfo[i].size) {
+			return(GetFont(lc, fl, i));
+		}
+	}
 
-  /*
-   * Check slant and size
-   */
-  for (i = 0; i < fl->count; i++)
-  {
-    if (((lfi->slant > 0) == (fl->fontInfo[i].slant > 0)) &&
-	fl->scale[lfi->scale] == fl->fontInfo[i].size)
-    {
-      return(GetFont(lc, fl, i));
-    }
-  }
+	/*
+	 * Check slant and size
+	 */
+	for (i = 0; i < fl->count; i++) {
+		if (((lfi->slant > 0) == (fl->fontInfo[i].slant > 0)) &&
+			fl->scale[lfi->scale] == fl->fontInfo[i].size) {
+			return(GetFont(lc, fl, i));
+		}
+	}
 
-  /*
-   * Check weight and size
-   */
-  for (i = 0; i < fl->count; i++)
-  {
-    if (((lfi->weight > 0) == (fl->fontInfo[i].weight > 0)) &&
-	fl->scale[lfi->scale] == fl->fontInfo[i].size)
-    {
-      return(GetFont(lc, fl, i));
-    }
-  }
+	/*
+	 * Check weight and size
+	 */
+	for (i = 0; i < fl->count; i++) {
+		if (((lfi->weight > 0) == (fl->fontInfo[i].weight > 0)) &&
+			fl->scale[lfi->scale] == fl->fontInfo[i].size) {
+			return(GetFont(lc, fl, i));
+		}
+	}
 
-  /*
-   * Check size
-   */
-  for (i = 0; i < fl->count; i++)
-  {
-    if (fl->scale[lfi->scale] == fl->fontInfo[i].size)
-    {
-      return(GetFont(lc, fl, i));
-    }
-  }
+	/*
+	 * Check size
+	 */
+	for (i = 0; i < fl->count; i++) {
+		if (fl->scale[lfi->scale] == fl->fontInfo[i].size) {
+			return(GetFont(lc, fl, i));
+		}
+	}
 
-  return(lc->defaultFont);
+	return(lc->defaultFont);
 }
 
 /*
@@ -228,92 +207,81 @@ GetFontList(lc, pattern)
 HTMLClass lc;
 char *pattern;
 {
-  int count;
-  int scale_count;
-  int i, j, k;
-  MemPool mp;
-  HTMLFontList fl;
+	int count;
+	int scale_count;
+	int i, j, k;
+	MemPool mp;
+	HTMLFontList fl;
 
-  fl = (HTMLFontList)MPCGet(lc->mp, sizeof(struct HTMLFontListP));
+	fl = (HTMLFontList)MPCGet(lc->mp, sizeof(struct HTMLFontListP));
 
-  fl->names = XListFonts(lc->dpy, pattern, 999, &count);
-  if (fl->names == NULL || count == 0)
-  {
-    fprintf (stderr, "Could not get font list\n");
-    fflush(stderr);
-    exit(1);
-  }
-
-  fl->fontInfo = (HTMLFont)MPCGet(lc->mp, sizeof(struct HTMLFontP) * count);
-
-  /*
-   * Extract simple information from the XLFD strings.
-   */
-  mp = MPCreate();
-  for (i = 0; i < count; i++)
-  {
-    ParseXLFD(mp, fl->names[i], &(fl->fontInfo[i]));
-  }
-  MPDestroy(mp);
-
-  /*
-   * Find sizes for each of the font scales.  There must be a better way.
-   * This should probably not take 
-   */
-  scale_count = 0;
-  for (i = 0; i < count && scale_count < FONT_SCALE_COUNT; i++)
-  {
-    if (fl->fontInfo[i].size > 0)
-    {
-      for (j = 0; j < scale_count; j++)
-      {
-	if (fl->fontInfo[i].size == fl->scale[j]) break;
-	if (fl->fontInfo[i].size < fl->scale[j])
-	{
-	  for (k = scale_count - 1; k >= j; k--)
-	  {
-	    fl->scale[k + 1] = fl->scale[k];
-	  }
-	  fl->scale[j] = fl->fontInfo[i].size;
-	  scale_count++;
-	  break;
+	fl->names = XListFonts(lc->dpy, pattern, 999, &count);
+	if (fl->names == NULL || count == 0) {
+		fprintf(stderr, "Could not get font list\n");
+		fflush(stderr);
+		exit(1);
 	}
-      }
-      if (j == scale_count)
-      {
-	fl->scale[j] = fl->fontInfo[i].size;
-	scale_count++;
-      }
-    }
-  }
 
-  /*
-   * This will probably never happen.
-   */
-  if (scale_count == 0)
-  {
-    fl->scale[0] = fl->fontInfo[0].size;
-    scale_count++;
-  }
-  
-  /*
-   * Fill out the rest if there aren't FONT_SCALE_COUNT
-   */
-  if (scale_count < FONT_SCALE_COUNT)
-  {
-    for (i = scale_count; i < FONT_SCALE_COUNT; i++)
-    {
-      fl->scale[i] = fl->scale[i - 1];
-    }
-    scale_count = FONT_SCALE_COUNT;
-  }
+	fl->fontInfo = (HTMLFont)MPCGet(lc->mp, sizeof(struct HTMLFontP) * count);
 
-  /*
-   * Set miscellaneous information.
-   */
-  fl->count = count;
+	/*
+	 * Extract simple information from the XLFD strings.
+	 */
+	mp = MPCreate();
+	for (i = 0; i < count; i++) {
+		ParseXLFD(mp, fl->names[i], &(fl->fontInfo[i]));
+	}
+	MPDestroy(mp);
 
-  return(fl);
+	/*
+	 * Find sizes for each of the font scales.  There must be a better way.
+	 * This should probably not take
+	 */
+	scale_count = 0;
+	for (i = 0; i < count && scale_count < FONT_SCALE_COUNT; i++) {
+		if (fl->fontInfo[i].size > 0) {
+			for (j = 0; j < scale_count; j++) {
+				if (fl->fontInfo[i].size == fl->scale[j]) break;
+				if (fl->fontInfo[i].size < fl->scale[j]) {
+					for (k = scale_count - 1; k >= j; k--) {
+						fl->scale[k + 1] = fl->scale[k];
+					}
+					fl->scale[j] = fl->fontInfo[i].size;
+					scale_count++;
+					break;
+				}
+			}
+			if (j == scale_count) {
+				fl->scale[j] = fl->fontInfo[i].size;
+				scale_count++;
+			}
+		}
+	}
+
+	/*
+	 * This will probably never happen.
+	 */
+	if (scale_count == 0) {
+		fl->scale[0] = fl->fontInfo[0].size;
+		scale_count++;
+	}
+
+	/*
+	 * Fill out the rest if there aren't FONT_SCALE_COUNT
+	 */
+	if (scale_count < FONT_SCALE_COUNT) {
+		for (i = scale_count; i < FONT_SCALE_COUNT; i++) {
+			fl->scale[i] = fl->scale[i - 1];
+		}
+		scale_count = FONT_SCALE_COUNT;
+	}
+
+	/*
+	 * Set miscellaneous information.
+	 */
+	fl->count = count;
+
+	return(fl);
 }
 
 /*
@@ -323,54 +291,53 @@ void
 HTMLSetupFonts(li)
 HTMLInfo li;
 {
-  char *name;
-  HTMLClass lc = li->lc;
+	char *name;
+	HTMLClass lc = li->lc;
 
-  /*
-   * Default HTML font.
-   */
-  li->cfi = (HTMLFont)MPCGet(li->mp, sizeof(struct HTMLFontP));
-  HTMLSetFontProp(li->cfi);
-  HTMLSetFontScale(li->cfi, 2);
+	/*
+	 * Default HTML font.
+	 */
+	li->cfi = (HTMLFont)MPCGet(li->mp, sizeof(struct HTMLFontP));
+	HTMLSetFontProp(li->cfi);
+	HTMLSetFontScale(li->cfi, 2);
 
-  /*
-   * Only need to do HTML font information setup once.
-   */
-  if (lc->font_setup_done) return;
+	/*
+	 * Only need to do HTML font information setup once.
+	 */
+	if (lc->font_setup_done) return;
 
-  lc->dpy = li->dpy;
+	lc->dpy = li->dpy;
 
-  /*
-   * Font to use if all else fails
-   */
-  name = ResourceGetString(li->cres, "html.defaultFont");
-  if (name == NULL) name = "variable";
-  if ((lc->defaultFont = XLoadQueryFont(li->dpy, name)) == NULL)
-  {
-    fprintf (stderr, "Could not get default font.\n");
-    fflush(stderr);
-    exit(1);
-  }
+	/*
+	 * Font to use if all else fails
+	 */
+	name = ResourceGetString(li->cres, "html.defaultFont");
+	if (name == NULL) name = "variable";
+	if ((lc->defaultFont = XLoadQueryFont(li->dpy, name)) == NULL) {
+		fprintf(stderr, "Could not get default font.\n");
+		fflush(stderr);
+		exit(1);
+	}
 
-  /*
-   * Get the font list pattern for the proportional fonts.  Hopefully
-   * a reasonable pattern was selected.
-   */
-  name = ResourceGetString(li->cres, "html.propFontPattern");
-  if (name == NULL) name = "-adobe-times-*-*-*-*-*-*-*-*-*-*-iso8859-1";
-  lc->prop = GetFontList(lc, name);
+	/*
+	 * Get the font list pattern for the proportional fonts.  Hopefully
+	 * a reasonable pattern was selected.
+	 */
+	name = ResourceGetString(li->cres, "html.propFontPattern");
+	if (name == NULL) name = "-adobe-times-*-*-*-*-*-*-*-*-*-*-iso8859-1";
+	lc->prop = GetFontList(lc, name);
 
-  /*
-   * Get the font list pattern for the fixed fonts.  Hopefully
-   * a reasonable pattern was selected.
-   */
-  name = ResourceGetString(li->cres, "html.fixedFontPattern");
-  if (name == NULL) name = "-misc-fixed-*-*-*-*-*-*-*-*-*-*-iso8859-1";
-  lc->fixed = GetFontList(lc, name);
+	/*
+	 * Get the font list pattern for the fixed fonts.  Hopefully
+	 * a reasonable pattern was selected.
+	 */
+	name = ResourceGetString(li->cres, "html.fixedFontPattern");
+	if (name == NULL) name = "-misc-fixed-*-*-*-*-*-*-*-*-*-*-iso8859-1";
+	lc->fixed = GetFontList(lc, name);
 
-  lc->font_setup_done = true;
+	lc->font_setup_done = true;
 
-  return;
+	return;
 }
 
 /*
@@ -381,22 +348,19 @@ FreeFontList(lc, fl)
 HTMLClass lc;
 HTMLFontList fl;
 {
-  int i;
+	int i;
 
-  if (fl->fontInfo != NULL)
-  {
-    for (i = 0; i < XLFD_COUNT; i++)
-    {
-      if (fl->fontInfo[i].xfi != NULL &&
-	  fl->fontInfo[i].xfi != lc->defaultFont)
-      {
-	XFreeFont(lc->dpy, fl->fontInfo[i].xfi);
-      }
-    }
-  }
-  if (fl->names != NULL) XFreeFontNames(fl->names);
+	if (fl->fontInfo != NULL) {
+		for (i = 0; i < XLFD_COUNT; i++) {
+			if (fl->fontInfo[i].xfi != NULL &&
+				fl->fontInfo[i].xfi != lc->defaultFont) {
+				XFreeFont(lc->dpy, fl->fontInfo[i].xfi);
+			}
+		}
+	}
+	if (fl->names != NULL) XFreeFontNames(fl->names);
 
-  return;
+	return;
 }
 
 /*
@@ -406,12 +370,12 @@ void
 HTMLFreeFonts(lc)
 HTMLClass lc;
 {
-  if (lc->prop != NULL) FreeFontList(lc, lc->prop);
-  if (lc->fixed != NULL) FreeFontList(lc, lc->fixed);
+	if (lc->prop != NULL) FreeFontList(lc, lc->prop);
+	if (lc->fixed != NULL) FreeFontList(lc, lc->fixed);
 
-  if (lc->defaultFont != NULL) XFreeFont(lc->dpy, lc->defaultFont);
+	if (lc->defaultFont != NULL) XFreeFont(lc->dpy, lc->defaultFont);
 
-  return;
+	return;
 }
 
 HTMLFont
@@ -419,34 +383,34 @@ HTMLDupFont(li, f)
 HTMLInfo li;
 HTMLFont f;
 {
-  HTMLFont n;
-  n = (HTMLFont)MPCGet(li->mp, sizeof(struct HTMLFontP));
-  memcpy(n, f, sizeof(struct HTMLFontP));
-  return(n);
+	HTMLFont n;
+	n = (HTMLFont)MPCGet(li->mp, sizeof(struct HTMLFontP));
+	memcpy(n, f, sizeof(struct HTMLFontP));
+	return(n);
 }
 
 void
 HTMLAddFontWeight(f)
 HTMLFont f;
 {
-  f->weight++;
-  return;
+	f->weight++;
+	return;
 }
 
 void
 HTMLAddFontSlant(f)
 HTMLFont f;
 {
-  f->slant++;
-  return;
+	f->slant++;
+	return;
 }
 
 void
 HTMLAddFontScale(f)
 HTMLFont f;
 {
-  f->scale++;
-  return;
+	f->scale++;
+	return;
 }
 
 void
@@ -454,22 +418,22 @@ HTMLSetFontScale(f, scale)
 HTMLFont f;
 int scale;
 {
-  f->scale = scale;
-  return;
+	f->scale = scale;
+	return;
 }
 
 void
 HTMLSetFontProp(f)
 HTMLFont f;
 {
-  f->fixed = false;
-  return;
+	f->fixed = false;
+	return;
 }
 
 void
 HTMLSetFontFixed(f)
 HTMLFont f;
 {
-  f->fixed = true;
-  return;
+	f->fixed = true;
+	return;
 }

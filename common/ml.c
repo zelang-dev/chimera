@@ -21,20 +21,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
 #include <ctype.h>
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "common.h"
 #include "ml.h"
@@ -62,7 +56,7 @@ struct MLAttributeP
 
 struct MLElementP
 {
-  MLElementType type;    
+  MLElementType type;
   char *ptext;                 /* processed text */
   size_t plen;                 /* processed text length */
   MLAttribute ta;              /* attribute list */
@@ -292,7 +286,7 @@ size_t *newlen;
       }
       if (cp < x)
       {
-	*bcp = *cp;                 
+	*bcp = *cp;
 	bcp++;
       }
     }
@@ -387,7 +381,7 @@ size_t len;
   return(tahead);
 }
 
-/* 
+/*
  * hs_add_element
  */
 static void
@@ -494,7 +488,7 @@ void *closure;
 
   hs_push(hs, MLS_START);
   hs_push(hs, MLS_DATA);
-  
+
   return(hs);
 }
 
@@ -785,4 +779,3 @@ char *name;
 
   return(atoi(value));
 }
-

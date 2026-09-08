@@ -20,21 +20,11 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/*
- * This sucks.
- */
-
-#include "port_before.h"
-
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #include <X11/Intrinsic.h>
 
-#include "port_after.h"
 
 #include "Chimera.h"
 #include "ChimeraRender.h"
@@ -98,7 +88,7 @@ size_t len;
   li->len = len;
   li->y = pi->height;
   pi->height += pi->lineheight;
-  
+
   li->width = XTextWidth(pi->font, s, len);
   if (li->width > pi->width) pi->width = li->width + PLAIN_MARGIN * 2;
 
@@ -385,7 +375,7 @@ void *state;
   pi->bg = GUIBackgroundPixel(wd);
 
   XSetForeground(pi->dpy, pi->gc, pi->fg);
-  
+
   GUISetScrollBar(wd, true);
   if (GUIGetDimensions(wd, &width, &height) == -1)
   {

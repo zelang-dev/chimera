@@ -23,154 +23,137 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "port_before.h"
-
 #include <stdio.h>
 #include <string.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#include "port_after.h"
 
 #include "common.h"
-
 #include "imagep.h"
 
-Image *
-newBitImage(width, height)
-unsigned int width, height;
-{
-  unsigned long datasize;
-  Image        *image;
+Image *newBitImage(width, height)
+unsigned int width, height;{
+	unsigned long datasize;
+	Image *image;
 
-  image = (Image *)alloc_mem(sizeof(Image));
-  if (!image) return((Image *) 0);
+	image = (Image *)malloc(sizeof(Image));
+	if (!image) return((Image *)0);
 
-  memset(image, 0, sizeof(Image));
-  image->type = IBITMAP;
-  image->width = width;
-  image->height = height;
-  image->depth = 1;
+	memset(image, 0, sizeof(Image));
+	image->type = IBITMAP;
+	image->width = width;
+	image->height = height;
+	image->depth = 1;
 
-  image->pixlen = 1;
-  /* round bytes_per_line up to nearest byte */
-  image->bytes_per_line = ((width - 1) / CHAR_BITS) + 1;
-  /* round bytes_per_line up to nearest longword */
-  image->bytes_per_line = ((image->bytes_per_line - 1) / sizeof(long)) + 1;
-  image->bytes_per_line *= sizeof(long);
-  /* Allocate a little too much memory, to allow overread */
-  datasize = image->bytes_per_line * height + 32;
-  image->data = (byte *)alloc_mem(datasize);
-  memset(image->data, 0, datasize);
-  image->transparent = -1;
+	image->pixlen = 1;
+	/* round bytes_per_line up to nearest byte */
+	image->bytes_per_line = ((width - 1) / CHAR_BITS) + 1;
+	/* round bytes_per_line up to nearest longword */
+	image->bytes_per_line = ((image->bytes_per_line - 1) / sizeof(long)) + 1;
+	image->bytes_per_line *= sizeof(long);
+	/* Allocate a little too much memory, to allow overread */
+	datasize = image->bytes_per_line * height + 32;
+	image->data = (byte *)malloc(datasize);
+	memset(image->data, 0, datasize);
+	image->transparent = -1;
 
-  return(image);
+	return(image);
 }
 
 Image *
 newRGBImage(width, height, depth)
 unsigned int width, height, depth;
 {
-  Image *image;
-  unsigned int pixlen;
-  unsigned long datasize;
-  
-  if(depth == 1)
-  {
-    image = newBitImage(width, height);
-    image->type = IRGB;
-    return image;
-  }
-  
-  pixlen = ((depth - 1) / CHAR_BITS) + 1;
-  pixlen *= CHAR_BITS;
-  
-  if (pixlen == 0) pixlen = 1;
-  
-  image = (Image *)alloc_mem(sizeof(Image));
-  if (!image) return((Image *)0);
+	Image *image;
+	unsigned int pixlen;
+	unsigned long datasize;
 
-  memset(image, 0, sizeof(Image));
-  image->type = IRGB;
-  image->width = width;
-  image->height = height;
-  image->depth = depth;
-  image->pixlen = pixlen;
-  /* set bytes_per_line (pixlen is a multiple of CHAR_BITS) */
-  image->bytes_per_line = (width * pixlen) / CHAR_BITS;
-  /* round bytes_per_line up to nearest longword */
-  image->bytes_per_line = ((image->bytes_per_line - 1) / sizeof(long)) + 1;
-  image->bytes_per_line *= sizeof(long);
-  /* Allocate a little too much memory, to allow overread */
-  datasize = image->bytes_per_line * height + 32;
-  image->data = (byte *)alloc_mem(datasize);
-  if (!image->data)
-  {
-    free_mem((char *)image);
-    return((Image *)0);
-  }
+	if (depth == 1) {
+		image = newBitImage(width, height);
+		image->type = IRGB;
+		return image;
+	}
 
-  memset(image->data, 0, datasize);
-  
-  image->rgb.used = 0;
-  image->rgb.compressed = 0;
-  image->rgb.size = 2;
-  
-  image->transparent = -1;
-  
-  return(image);
+	pixlen = ((depth - 1) / CHAR_BITS) + 1;
+	pixlen *= CHAR_BITS;
+
+	if (pixlen == 0) pixlen = 1;
+
+	image = (Image *)malloc(sizeof(Image));
+	if (!image) return((Image *)0);
+
+	memset(image, 0, sizeof(Image));
+	image->type = IRGB;
+	image->width = width;
+	image->height = height;
+	image->depth = depth;
+	image->pixlen = pixlen;
+	/* set bytes_per_line (pixlen is a multiple of CHAR_BITS) */
+	image->bytes_per_line = (width * pixlen) / CHAR_BITS;
+	/* round bytes_per_line up to nearest longword */
+	image->bytes_per_line = ((image->bytes_per_line - 1) / sizeof(long)) + 1;
+	image->bytes_per_line *= sizeof(long);
+	/* Allocate a little too much memory, to allow overread */
+	datasize = image->bytes_per_line * height + 32;
+	image->data = (byte *)malloc(datasize);
+	if (!image->data) {
+		free((char *)image);
+		return((Image *)0);
+	}
+
+	memset(image->data, 0, datasize);
+
+	image->rgb.used = 0;
+	image->rgb.compressed = 0;
+	image->rgb.size = 2;
+
+	image->transparent = -1;
+
+	return(image);
 }
 
-Image *
-newTrueImage(width, height)
-unsigned int width, height;
-{
-  Image *image;
-  unsigned long datasize;
-  
-  image = (Image *)alloc_mem(sizeof(Image));
-  if (!image) return((Image *) 0);
+Image *newTrueImage(unsigned int width, unsigned int height) {
+	Image *image;
+	unsigned long datasize;
 
-  memset(image, 0, sizeof(Image));
-  image->type = ITRUE;
-  image->width = width;
-  image->height = height;
-  image->depth = 8;
-  image->pixlen = 24;
-  /* set bytes_per_line */
-  image->bytes_per_line = width * 3;
-  /* round bytes_per_line up to nearest longword */
-  image->bytes_per_line = ((image->bytes_per_line - 1) / sizeof(long)) + 1;
-  image->bytes_per_line *= sizeof(long);
-  /* Allocate a little too much memory, to allow overread */
-  datasize = image->bytes_per_line * height + 32;
-  image->data = (byte *)alloc_mem(datasize);
-  if (!image->data)
-  {
-    free_mem((char *)image);
-    return ((Image *)0);
-  }
+	image = (Image *)malloc(sizeof(Image));
+	if (!image) return((Image *)0);
 
-  memset(image->data, 0, datasize);
-  
-  image->rgb.used = 0;
-  image->rgb.compressed = 0;
-  image->rgb.size = 2;
-  
-  image->transparent = -1;
-  
-  return(image);
+	memset(image, 0, sizeof(Image));
+	image->type = ITRUE;
+	image->width = width;
+	image->height = height;
+	image->depth = 8;
+	image->pixlen = 24;
+	/* set bytes_per_line */
+	image->bytes_per_line = width * 3;
+	/* round bytes_per_line up to nearest longword */
+	image->bytes_per_line = ((image->bytes_per_line - 1) / sizeof(long)) + 1;
+	image->bytes_per_line *= sizeof(long);
+	/* Allocate a little too much memory, to allow overread */
+	datasize = image->bytes_per_line * height + 32;
+	image->data = (byte *)malloc(datasize);
+	if (!image->data) {
+		free((char *)image);
+		return ((Image *)0);
+	}
+
+	memset(image->data, 0, datasize);
+
+	image->rgb.used = 0;
+	image->rgb.compressed = 0;
+	image->rgb.size = 2;
+
+	image->transparent = -1;
+
+	return(image);
 }
 
-void
-freeImage(image)
-Image *image;
-{
-  if (image->data != NULL) free_mem((char *)image->data);
-  image->data = NULL;
-  free_mem((char *)image);
+void freeImage(Image *image) {
+	if (image->data != NULL)
+		free((char *)image->data);
 
-  return;
+	image->data = NULL;
+	free((char *)image);
+
+	return;
 }

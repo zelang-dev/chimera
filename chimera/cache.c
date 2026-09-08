@@ -18,29 +18,19 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
 #include <ctype.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include <X11/IntrinsicP.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 #include "mime.h"
@@ -49,7 +39,7 @@
 typedef struct
 {
   MemPool mp;                         /* memory descriptor */
-  char *filename;                     /* name of cache file */ 
+  char *filename;                     /* name of cache file */
   char *url;                          /* URL string */
   int cid;                            /* cache ID */
 
@@ -199,7 +189,7 @@ void *closure;
   CRInfo *cr = (CRInfo *)closure;
 
   CRStop(cr);
-  if (cr->buffer != NULL) free_mem(cr->buffer);
+  if (cr->buffer != NULL) free(cr->buffer);
   if (cr->mh != NULL) MIMEDestroyHeader(cr->mh);
   MPDestroy(cr->mp);
 
@@ -218,7 +208,7 @@ void *closure;
 
   cr->wt = NULL;
 
-  cr->buffer = (byte *)alloc_mem(cr->s.st_size);
+  cr->buffer = (byte *)malloc(cr->s.st_size);
   rval = fread(cr->buffer, 1, cr->s.st_size, cr->fp);
   if (rval == cr->s.st_size)
   {
@@ -268,7 +258,7 @@ void *closure;
     CRDestroy(cr);
     return(NULL);
   }
-  
+
   cr->wt = TaskSchedule(cr->cres, CRRead, cr);
 
   return(cr);
@@ -304,7 +294,7 @@ int cid;
     ce->cid = cid;
     if (cid > cc->next_cid) cc->next_cid = cid + 1;
   }
-  
+
   snprintf (filename, len, "%s/%d.ccf", cc->dirname, ce->cid);
 
   ce->filename = filename;
@@ -482,14 +472,14 @@ ChimeraCache cc;
 
   if (stat(cc->cindex, &s) != -1 && (fp = fopen(cc->cindex, "r")) != NULL)
   {
-    bdata = (char *)alloc_mem(s.st_size);
+    bdata = (char *)malloc(s.st_size);
     if (fread(bdata, 1, s.st_size, fp) == s.st_size)
     {
       cc->ml = MLInit(CacheElementHandler, cc);
       MLEndData(cc->ml, bdata, (size_t)s.st_size);
       MLDestroy(cc->ml);
     }
-    free_mem(bdata);
+    free(bdata);
     fclose(fp);
   }
 
@@ -530,7 +520,7 @@ void *closure;
     CRDestroy(cr);
     return(NULL);
   }
-  
+
   cr->wt = TaskSchedule(cc->cres, CRRead, cr);
 
   return(cr);

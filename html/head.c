@@ -19,16 +19,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
 #include <ctype.h>
 
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "html.h"
 
@@ -38,9 +35,9 @@ HTMLInfo li;
 HTMLEnv env;
 MLElement p;
 {
-  li->title = HTMLGetEnvText(li->mp, env);
+	li->title = HTMLGetEnvText(li->mp, env);
 
-  return;
+	return;
 }
 
 void
@@ -49,11 +46,11 @@ HTMLInfo li;
 HTMLEnv env;
 MLElement p;
 {
-  char *url;
+	char *url;
 
-  if ((url = MLFindAttribute(p, "href")) != NULL) li->burl = url;
+	if ((url = MLFindAttribute(p, "href")) != NULL) li->burl = url;
 
-  return;
+	return;
 }
 
 void
@@ -62,5 +59,5 @@ HTMLInfo li;
 HTMLEnv env;
 MLElement p;
 {
-  return;
+	return;
 }

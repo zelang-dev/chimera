@@ -18,20 +18,13 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
 #include <ctype.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "url.h"
 
@@ -190,7 +183,7 @@ bool addfrag;
 
   if (NullString(up->scheme)) scheme = "file";
   else scheme = up->scheme;
-  
+
   if (NullString(up->hostname))
   {
     delim = "";
@@ -477,7 +470,7 @@ char *url;
        * the rest is a filename because there is no // or it appears
        * after other characters
        */
-      if (colon != NULL && colon < slash) 
+      if (colon != NULL && colon < slash)
       {
 	up->filename = MPStrDup(mp, colon + 1);
       }

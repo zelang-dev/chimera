@@ -19,12 +19,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "port_after.h"
 
 #include "common.h"
 
@@ -73,7 +71,7 @@ void *pointer;
   if (xbm->image)
     freeImage(xbm->image);
   xbm->image = 0;
-  if (xbm != NULL) free_mem(xbm);
+  if (xbm != NULL) free(xbm);
 
   return;
 }
@@ -231,7 +229,7 @@ lf_read_header(
 
 static void
 lf_wrap_x(xbmState *xbm)
-{ 
+{
   if(xbm->xpos >= xbm->image->width)
   {
     if (xbm->lineProc != NULL)
@@ -363,8 +361,8 @@ void *closure;
 struct ifs_vector *if_vector;
 {
   xbmState *xbm;
-  
-  xbm = (xbmState *)alloc_mem(sizeof(xbmState));
+
+  xbm = (xbmState *)malloc(sizeof(xbmState));
   memset(xbm, 0, sizeof(xbmState));
   xbm->state = XBM_READ_HEADER;
   xbm->lineProc = lineProc;

@@ -18,22 +18,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
-
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
+
 
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 
@@ -207,7 +199,7 @@ ChimeraGUI wd;
 unsigned int *width, *height;
 {
   if (!wd->size_set) return(-1);
-  WWWGetDrawSize(wd->www, width, height);     
+  WWWGetDrawSize(wd->www, width, height);
   return(0);
 }
 
@@ -250,14 +242,14 @@ int *x, *y;
 unsigned int *width, *height;
 {
   WWWWidget rw = (WWWWidget)wd->www;
-  
+
   *x = -(int)rw->www.child->core.x;
   *y = -(int)rw->www.child->core.y;
   *width = (unsigned int)rw->www.child->core.width;
   *height = (unsigned int)rw->www.clip->core.height;
-    
+
   return;
-}     
+}
 
 /*
  * GUIReset
@@ -468,7 +460,7 @@ int *x, *y;
 
 /*
  * GUIBackgroundPixel
- */ 
+ */
 Pixel
 GUIBackgroundPixel(wd)
 ChimeraGUI wd;
@@ -487,4 +479,3 @@ ChimeraGUI wd;
 {
   return(WWWGetDrawWidget(wd->www));
 }
-

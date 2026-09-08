@@ -38,12 +38,9 @@
  * o You shouldn't be trying to view jpegs on a 1-bit screen anyway. :-)
  */
 
-#include "port_before.h"
-
 #include <stdlib.h>
 
-#include "port_after.h"
-
+#include "common.h"
 #include "imagep.h"
 #include "colorcube.h"
 
@@ -68,7 +65,7 @@ lf_create_dither_matrix(
   /* Make sure the column count is <= row count */
 
   if (tc > tr)
-  { 
+  {
     int t = tc;
     tc = tr;
     tr = t;
@@ -101,7 +98,7 @@ lf_create_dither_matrix(
     for (y = 0; y < r; y++)
     {
       for (x= 0; x < c2; x++)
-      { 
+      {
         matrix[(y + r2) % r][x + c2] = matrix[y][x] * 2 -1;
         matrix[y][x] *= 2;
       }
@@ -111,7 +108,7 @@ lf_create_dither_matrix(
   /* Swap matrix width/height if necessary */
 
   if (swapped)
-  { 
+  {
     for (r = 0; r < tr; r++)
     {
       for (c = 0; c < r; c++)
@@ -142,7 +139,7 @@ lf_calculate_dither_table(
     unsigned long pixel_values[256])
  {
     int i, c, j;
-    double brightness_factor = 255.0 / 
+    double brightness_factor = 255.0 /
       (brightnesses[value_count - 1] -
        brightnesses[0]);
 
@@ -423,7 +420,7 @@ ccf_create_true_true_conversion_table(cct_cube cube)
   }
   return answer;
 }
-  
+
 /*
  * For 8-bit palette input we do not need to convert to true-color
  * one component at a time. We can do it in one lookup. This generates
@@ -526,7 +523,7 @@ ccf_gray_to_gray_dither_convert(
 
   return answer;
 }
-  
+
 /*
  * If we are converting 8-bit palette to grayscale, we do not
  * need to convert every pixel to gray, we can simply integrate
@@ -559,4 +556,3 @@ ccf_gray_to_gray_conversion_convert(
 
   return answer;
 }
-

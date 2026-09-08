@@ -17,15 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
-
 #include <stdio.h>
 
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 
-#include "port_after.h"
-
+#include "common.h"
 #include "GeomP.h"
 
 static void GeomInitialize _ArgProto((Widget, Widget, ArgList, Cardinal *));
@@ -102,7 +99,7 @@ GeomGeometryManager(w, request, reply)
 Widget w;
 XtWidgetGeometry *request;
 XtWidgetGeometry *reply;
-{ 
+{
   return(XtGeometryNo);
 }
 

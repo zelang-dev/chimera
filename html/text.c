@@ -19,16 +19,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
-
 #include <stdio.h>
 #include <ctype.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "html.h"
 
@@ -177,7 +171,7 @@ size_t len;
     }
     else ptlen++;
   }
-  
+
   if (tabbed)
   {
     s = ExpandTabs(li, start, cp - start, ptlen);
@@ -244,7 +238,7 @@ MLElement p;
   if (text == NULL) return;
 
   HTMLPreformatted(li, env, text, len);
-  
+
   return;
 }
 
@@ -300,16 +294,16 @@ MLElement p;
       {
 	found_space = true;
       }
-      
+
       if (found_space)
       {
 	HTMLEnvAddBox(li, env, HTMLCreateTextBox(li, env, NULL, 0));
       }
       if (cp == lastcp) break;
-      
+
       for (s = cp; cp < lastcp && !isspace8(*cp); cp++)
 	  ;
-      
+
       HTMLEnvAddBox(li, env, HTMLCreateTextBox(li, env, s, cp - s));
     }
   }

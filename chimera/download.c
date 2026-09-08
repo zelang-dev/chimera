@@ -17,19 +17,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
 
 #include <stdio.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <X11/Shell.h>
 
-#include "port_after.h"
 
 #include "MyDialog.h"
 
@@ -127,7 +122,7 @@ void *closure;
     return;
   }
 
-  filename = FixPath(di->mp, filename); 
+  filename = FixPath(di->mp, filename);
   if ((fp = fopen(filename, "w")) == NULL)
   {
     XBell(di->cres->dpy, 100);
@@ -139,10 +134,10 @@ void *closure;
   }
 
   SinkGetData(di->wp, &data, &len, &mh);
-  
+
   fwrite(data, 1, len, fp);
   fclose(fp);
-  
+
   DownloadDestroy(di);
 
   return;

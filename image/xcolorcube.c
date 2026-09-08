@@ -17,16 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
-#include "port_before.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
-#include "port_after.h"
-
+#include "common.h"
 #include "colorcube.h"
 #include "xcolorcube.h"
 
@@ -425,7 +421,7 @@ xccf_color_compare(
   int r2,
   int g2,
   int b2)
-{ 
+{
   if(lf_abs(r1 - r2) > 6) return false;
   if(lf_abs(g1 - g2) > 3) return false;
   if(lf_abs(b1 - b2) > 6) return false;

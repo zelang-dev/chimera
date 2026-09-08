@@ -1,7 +1,7 @@
 /*
  * hr.c
  *
- * libhtml - HTML->X renderer 
+ * libhtml - HTML->X renderer
  *
  * Copyright (c) 1995-1997, John Kilburg <john@cs.unlv.edu>
  *
@@ -19,15 +19,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "html.h"
 
@@ -51,14 +47,14 @@ HTMLInfo li;
 HTMLBox box;
 Region r;
 {
-  XSetLineAttributes(li->dpy, li->gc,
-		     1, LineSolid, CapNotLast, JoinRound);
+	XSetLineAttributes(li->dpy, li->gc,
+		1, LineSolid, CapNotLast, JoinRound);
 
-  XDrawLine(li->dpy, li->win, li->gc,
-	    box->x, box->y + HR_HALF_HEIGHT,
-	    box->x + box->width, box->y + HR_HALF_HEIGHT);
+	XDrawLine(li->dpy, li->win, li->gc,
+		box->x, box->y + HR_HALF_HEIGHT,
+		box->x + box->width, box->y + HR_HALF_HEIGHT);
 
-  return;
+	return;
 }
 
 /*
@@ -76,17 +72,17 @@ HTMLInfo li;
 HTMLEnv env;
 MLElement p;
 {
-  HTMLBox box;
+	HTMLBox box;
 
-  HTMLAddLineBreak(li, env);
+	HTMLAddLineBreak(li, env);
 
-  box = HTMLCreateBox(li, env);
-  box->render = RenderHR;
-  box->width = HTMLGetMaxWidth(li, env);
-  box->height = HR_HEIGHT;
-  HTMLEnvAddBox(li, env, box);
+	box = HTMLCreateBox(li, env);
+	box->render = RenderHR;
+	box->width = HTMLGetMaxWidth(li, env);
+	box->height = HR_HEIGHT;
+	HTMLEnvAddBox(li, env, box);
 
-  HTMLAddLineBreak(li, env);
+	HTMLAddLineBreak(li, env);
 
-  return;
+	return;
 }

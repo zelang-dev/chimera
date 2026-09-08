@@ -20,15 +20,10 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
-
 #include <stdlib.h>
 #include <string.h>
 
-#include "port_after.h"
-
 #include "common.h"
-
 #include "image_endian.h"
 #include "imagep.h"
 #include "pnmp.h"
@@ -59,415 +54,380 @@ static void
 pnmDestroy(pointer)
 void *pointer;
 {
-  pnmState *pnm = (pnmState *)pointer;
-  if (pnm->free_input_table && pnm->input_table)
-    free(pnm->input_table);
-  pnm->input_table = 0;
-  pnm->free_input_table = false;
-  if (pnm->image)
-    freeImage(pnm->image);
-  pnm->image = 0;
-  if (pnm != NULL) free_mem(pnm);
+	pnmState *pnm = (pnmState *)pointer;
+	if (pnm->free_input_table && pnm->input_table)
+		free(pnm->input_table);
+	pnm->input_table = 0;
+	pnm->free_input_table = false;
+	if (pnm->image)
+		freeImage(pnm->image);
+	pnm->image = 0;
+	if (pnm != NULL) free(pnm);
 
-  return;
+	return;
 }
 
 static int
 lf_read_magic(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  if(len < 2) return PNM_NEED_DATA;
-  if(data[0] != 'P') return PNM_ERROR;
-  if(data[1] < '1' || data[1] > '6') return PNM_ERROR;
-  pnm->pnm_class = data[1] - '0';
-  pnm->pos = 2;
-  pnm->state = PNM_READ_WIDTH;
-  return PNM_SUCCESS;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	if (len < 2) return PNM_NEED_DATA;
+	if (data[0] != 'P') return PNM_ERROR;
+	if (data[1] < '1' || data[1] > '6') return PNM_ERROR;
+	pnm->pnm_class = data[1] - '0';
+	pnm->pos = 2;
+	pnm->state = PNM_READ_WIDTH;
+	return PNM_SUCCESS;
 }
 
 static void
 lf_skip_line(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  int pos = pnm->pos;
-  while(pos < len && data[pos] != '\n' && data[pos] != '\r')
-    pos++;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	int pos = pnm->pos;
+	while (pos < len && data[pos] != '\n' && data[pos] != '\r')
+		pos++;
 
-  /*
-   * end of line not found?
-   */
-  if(pos >= len) return;
+	  /*
+	   * end of line not found?
+	   */
+	if (pos >= len) return;
 
-  /*
-   * Check for CR-LF
-   */
-  if(pos < len-1 && data[pos] == '\r' && data[pos+1] == '\n')
-  {
-    pos += 2;
-    pnm->pos = pos;
-    return;
-  }
+	/*
+	 * Check for CR-LF
+	 */
+	if (pos < len - 1 && data[pos] == '\r' && data[pos + 1] == '\n') {
+		pos += 2;
+		pnm->pos = pos;
+		return;
+	}
 
-  /*
-   * Check for LF-CR (does this exist?)
-   */
-  if(pos < len-1 && data[pos] == '\n' && data[pos+1] == '\r')
-  {
-    pos += 2;
-    pnm->mac_newlines = true;
-    pnm->pos = pos;
-    return;
-  }
+	/*
+	 * Check for LF-CR (does this exist?)
+	 */
+	if (pos < len - 1 && data[pos] == '\n' && data[pos + 1] == '\r') {
+		pos += 2;
+		pnm->mac_newlines = true;
+		pnm->pos = pos;
+		return;
+	}
 
-  /*
-   * Check for LF-endofdata or CR-endofdata
-   */
-  if(pos >= len-1 && (data[pos] == '\n' || data[pos] == '\r'))
-  {
-    return;
-  }
+	/*
+	 * Check for LF-endofdata or CR-endofdata
+	 */
+	if (pos >= len - 1 && (data[pos] == '\n' || data[pos] == '\r')) {
+		return;
+	}
 
-  /*
-   * Check for CR alone
-   */
-  if(data[pos] == '\r')
-    pnm->mac_newlines = true;
+	/*
+	 * Check for CR alone
+	 */
+	if (data[pos] == '\r')
+		pnm->mac_newlines = true;
 
-  pnm->pos = pos + 1;
-  return;
+	pnm->pos = pos + 1;
+	return;
 }
 
 static int
 lf_skip_whitespace(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  while(pnm->pos < len)
-  {
-    while(data[pnm->pos] == ' ' || 
-          data[pnm->pos] == '\n' || 
-          data[pnm->pos] == '\r' || 
-          data[pnm->pos] == '\t')
-    {
-      if(pnm->pos && data[pnm->pos] == '\r' && data[pnm->pos-1] != '\n')
-        pnm->mac_newlines = true;
-      pnm->pos++;
-      if(pnm->pos >= len) return PNM_NEED_DATA;
-    }
-    if(data[pnm->pos] == '#')
-    {
-      int t = pnm->pos;
-      lf_skip_line(pnm, data, len);
-      if(t == pnm->pos) return PNM_NEED_DATA;
-    }
-    else
-    {
-      break;
-    }
-  }
-  return PNM_SUCCESS;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	while (pnm->pos < len) {
+		while (data[pnm->pos] == ' ' ||
+			data[pnm->pos] == '\n' ||
+			data[pnm->pos] == '\r' ||
+			data[pnm->pos] == '\t') {
+			if (pnm->pos && data[pnm->pos] == '\r' && data[pnm->pos - 1] != '\n')
+				pnm->mac_newlines = true;
+			pnm->pos++;
+			if (pnm->pos >= len) return PNM_NEED_DATA;
+		}
+		if (data[pnm->pos] == '#') {
+			int t = pnm->pos;
+			lf_skip_line(pnm, data, len);
+			if (t == pnm->pos) return PNM_NEED_DATA;
+		} else {
+			break;
+		}
+	}
+	return PNM_SUCCESS;
 }
 
 static bool
 lf_punctuation_ahead(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  byte *i;
-  for(i = data + pnm->pos; i < data + len; i++)
-    if((*i < '0' || *i > '9') &&
-       (*i < 'a' || *i > 'z') &&
-       (*i < 'A' || *i > 'Z'))
-      return true;
-  return false;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	byte *i;
+	for (i = data + pnm->pos; i < data + len; i++)
+		if ((*i < '0' || *i > '9') &&
+			(*i < 'a' || *i > 'z') &&
+			(*i < 'A' || *i > 'Z'))
+			return true;
+	return false;
 }
 
 static bool
 lf_read_int(
-  pnmState *pnm,
-  byte *data,
-  int len,
-  int *returnval)
-{
-  byte *new_pos;
-  long answer = strtol((char *)(data + pnm->pos), (char **)(&new_pos), 10);
-  if(new_pos == data + pnm->pos) return true;
-  pnm->pos = new_pos - data;
-  *returnval = answer;
-  return false;
+	pnmState *pnm,
+	byte *data,
+	int len,
+	int *returnval) {
+	byte *new_pos;
+	long answer = strtol((char *)(data + pnm->pos), (char **)(&new_pos), 10);
+	if (new_pos == data + pnm->pos) return true;
+	pnm->pos = new_pos - data;
+	*returnval = answer;
+	return false;
 }
 
 static int
 lf_read_width(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  int a;
-  if(lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA) return PNM_NEED_DATA;
-  if(pnm->pos >= len) return PNM_NEED_DATA;
-  if(!lf_punctuation_ahead(pnm, data, len)) return PNM_NEED_DATA;
-  if(lf_read_int(pnm, data, len, &a)) return PNM_ERROR;
-  pnm->width = a;
-  pnm->state = PNM_READ_HEIGHT;
-  return PNM_SUCCESS;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	int a;
+	if (lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA) return PNM_NEED_DATA;
+	if (pnm->pos >= len) return PNM_NEED_DATA;
+	if (!lf_punctuation_ahead(pnm, data, len)) return PNM_NEED_DATA;
+	if (lf_read_int(pnm, data, len, &a)) return PNM_ERROR;
+	pnm->width = a;
+	pnm->state = PNM_READ_HEIGHT;
+	return PNM_SUCCESS;
 }
 
 static int
 lf_read_height(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  int height;
-  int i;
-  if(lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA) return PNM_NEED_DATA;
-  if(pnm->pos >= len) return PNM_NEED_DATA;
-  if(!lf_punctuation_ahead(pnm, data, len)) return PNM_NEED_DATA;
-  if(lf_read_int(pnm, data, len, &height)) return PNM_ERROR;
-  switch(pnm->pnm_class)
-  {
-  case 1:
-  case 4:
-    pnm->image = newBitImage(pnm->width, height);
-    if (!pnm->image) return PNM_ERROR;
-    pnm->imagepos = pnm->image->data;
-    if(pnm->pnm_class == 1) pnm->state = PNM_READ_ASC_BIT;
-    else                    pnm->state = PNM_READ_PRE_RAW_NEWLINE;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	int height;
+	int i;
+	if (lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA) return PNM_NEED_DATA;
+	if (pnm->pos >= len) return PNM_NEED_DATA;
+	if (!lf_punctuation_ahead(pnm, data, len)) return PNM_NEED_DATA;
+	if (lf_read_int(pnm, data, len, &height)) return PNM_ERROR;
+	switch (pnm->pnm_class) {
+		case 1:
+		case 4:
+			pnm->image = newBitImage(pnm->width, height);
+			if (!pnm->image) return PNM_ERROR;
+			pnm->imagepos = pnm->image->data;
+			if (pnm->pnm_class == 1) pnm->state = PNM_READ_ASC_BIT;
+			else                    pnm->state = PNM_READ_PRE_RAW_NEWLINE;
 #   ifdef CHIMERA_LITTLE_ENDIAN
-      if(pnm->pnm_class == 1)
-        pnm->input_table = 0; /* ascii bytes will be assembled l-e */
-      else
-        pnm->input_table = lc_reverse_byte; /* raw bytes are big-endian */
+			if (pnm->pnm_class == 1)
+				pnm->input_table = 0; /* ascii bytes will be assembled l-e */
+			else
+				pnm->input_table = lc_reverse_byte; /* raw bytes are big-endian */
 #   else
-      if(pnm->pnm_class == 1)
-        pnm->input_table = lc_reverse_byte; /* ascii bytes will be assembled l-e */
-      else
-        pnm->input_table = 0; /* raw bytes are big-endian */
+			if (pnm->pnm_class == 1)
+				pnm->input_table = lc_reverse_byte; /* ascii bytes will be assembled l-e */
+			else
+				pnm->input_table = 0; /* raw bytes are big-endian */
 #   endif
-    break;
-  case 2:
-  case 5:
-    pnm->image = newRGBImage(pnm->width, height, 8);
-    if (!pnm->image) return PNM_ERROR;
-    pnm->imagepos = pnm->image->data;
-    pnm->image->type = IGRAY;
-    pnm->image->rgb.red = pnm->cmap[0];
-    pnm->image->rgb.green = pnm->cmap[1];
-    pnm->image->rgb.blue = pnm->cmap[2];
-    for(i = 0; i < 256; i++)
-    {
-      pnm->image->rgb.red[i] = i | (i << 8);
-      pnm->image->rgb.green[i] = i | (i << 8);
-      pnm->image->rgb.blue[i] = i | (i << 8);
-    }
-    pnm->state = PNM_READ_MAX_VAL;
-    break;
-  case 3:
-  case 6:
-    pnm->image = newTrueImage(pnm->width, height);
-    if (!pnm->image) return PNM_ERROR;
-    pnm->imagepos = pnm->image->data;
-    pnm->state = PNM_READ_MAX_VAL;
-    break;
-  }
-  return PNM_SUCCESS;
+			break;
+		case 2:
+		case 5:
+			pnm->image = newRGBImage(pnm->width, height, 8);
+			if (!pnm->image) return PNM_ERROR;
+			pnm->imagepos = pnm->image->data;
+			pnm->image->type = IGRAY;
+			pnm->image->rgb.red = pnm->cmap[0];
+			pnm->image->rgb.green = pnm->cmap[1];
+			pnm->image->rgb.blue = pnm->cmap[2];
+			for (i = 0; i < 256; i++) {
+				pnm->image->rgb.red[i] = i | (i << 8);
+				pnm->image->rgb.green[i] = i | (i << 8);
+				pnm->image->rgb.blue[i] = i | (i << 8);
+			}
+			pnm->state = PNM_READ_MAX_VAL;
+			break;
+		case 3:
+		case 6:
+			pnm->image = newTrueImage(pnm->width, height);
+			if (!pnm->image) return PNM_ERROR;
+			pnm->imagepos = pnm->image->data;
+			pnm->state = PNM_READ_MAX_VAL;
+			break;
+	}
+	return PNM_SUCCESS;
 }
 
 static int
 lf_read_max_val(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  int i;
-  int max_val;
-  if(lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA) return PNM_NEED_DATA;
-  if(pnm->pos >= len) return PNM_NEED_DATA;
-  if(!lf_punctuation_ahead(pnm, data, len)) return PNM_NEED_DATA;
-  if(lf_read_int(pnm, data, len, &max_val)) return PNM_ERROR;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	int i;
+	int max_val;
+	if (lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA) return PNM_NEED_DATA;
+	if (pnm->pos >= len) return PNM_NEED_DATA;
+	if (!lf_punctuation_ahead(pnm, data, len)) return PNM_NEED_DATA;
+	if (lf_read_int(pnm, data, len, &max_val)) return PNM_ERROR;
 
-  if(max_val > 65535) return PNM_ERROR;
-  if(max_val < 1) return PNM_ERROR;
-  if(pnm->pnm_class > 3 && max_val > 255) return PNM_ERROR;
+	if (max_val > 65535) return PNM_ERROR;
+	if (max_val < 1) return PNM_ERROR;
+	if (pnm->pnm_class > 3 && max_val > 255) return PNM_ERROR;
 
-  pnm->max_val = max_val;
-  if(pnm->pnm_class > 3)
-    pnm->state = PNM_READ_PRE_RAW_NEWLINE;
-  else
-    pnm->state = PNM_READ_ASC;
+	pnm->max_val = max_val;
+	if (pnm->pnm_class > 3)
+		pnm->state = PNM_READ_PRE_RAW_NEWLINE;
+	else
+		pnm->state = PNM_READ_ASC;
 
-  if(max_val == 255) return PNM_SUCCESS;
+	if (max_val == 255) return PNM_SUCCESS;
 
-  if(pnm->pnm_class > 3)
-    pnm->input_table = (byte *)calloc_mem(1, 256);
-  else
-    pnm->input_table = (byte *)calloc_mem(1, max_val);
+	if (pnm->pnm_class > 3)
+		pnm->input_table = (byte *)calloc(1, 256);
+	else
+		pnm->input_table = (byte *)calloc(1, max_val);
 
-  pnm->free_input_table = true;
+	pnm->free_input_table = true;
 
-  for(i = 0; i < max_val; i++)
-    pnm->input_table[i] = 255.0 * (((double)i) / ((double)max_val) + 0.0001);
+	for (i = 0; i < max_val; i++)
+		pnm->input_table[i] = 255.0 * (((double)i) / ((double)max_val) + 0.0001);
 
-  return PNM_SUCCESS;
+	return PNM_SUCCESS;
 }
 
 static int
 lf_read_pre_raw_newline(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  while(pnm->pos < len && data[pnm->pos] != '\n' && data[pnm->pos] != '\r')
-    pnm->pos++;
-  if(pnm->pos >= len) return PNM_NEED_DATA;
-  if(pnm->mac_newlines && data[pnm->pos] == '\n')
-  {
-    if(pnm->pos >= len-1)
-      return PNM_NEED_DATA;
-    else
-      pnm->pos++;
-  }
-  pnm->pos++;
-  pnm->state = PNM_READ_RAW;
-  return PNM_SUCCESS;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	while (pnm->pos < len && data[pnm->pos] != '\n' && data[pnm->pos] != '\r')
+		pnm->pos++;
+	if (pnm->pos >= len) return PNM_NEED_DATA;
+	if (pnm->mac_newlines && data[pnm->pos] == '\n') {
+		if (pnm->pos >= len - 1)
+			return PNM_NEED_DATA;
+		else
+			pnm->pos++;
+	}
+	pnm->pos++;
+	pnm->state = PNM_READ_RAW;
+	return PNM_SUCCESS;
 }
 
 static int
 lf_read_raw(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  int bytes_per_line = pnm->image->width * pnm->image->pixlen;
-  bytes_per_line += CHAR_BITS - 1;
-  bytes_per_line /= CHAR_BITS;
-  while(pnm->ypos < pnm->image->height && len - pnm->pos >= bytes_per_line)
-  {
-    int i;
-    byte *imagepos = pnm->imagepos;
-    byte *sourcepos = data + pnm->pos;
-    byte *table = pnm->input_table;
-  
-    if(table) for(i = bytes_per_line; i; i--)
-    {
-      *imagepos++ = table[*sourcepos++];
-    }
-    else
-    {
-      memcpy(imagepos, sourcepos, bytes_per_line);
-      imagepos += bytes_per_line;
-      sourcepos += bytes_per_line;
-    }
-  
-    pnm->imagepos += pnm->image->bytes_per_line;
-    pnm->pos += bytes_per_line;
-    if(pnm->lineProc) pnm->lineProc(pnm->closure, pnm->ypos, pnm->ypos);
-    pnm->ypos++;
-  }
-  if(pnm->ypos < pnm->image->height) return PNM_NEED_DATA;
-  pnm->state = PNM_FINISHED;
-  return PNM_SUCCESS;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	int bytes_per_line = pnm->image->width * pnm->image->pixlen;
+	bytes_per_line += CHAR_BITS - 1;
+	bytes_per_line /= CHAR_BITS;
+	while (pnm->ypos < pnm->image->height && len - pnm->pos >= bytes_per_line) {
+		int i;
+		byte *imagepos = pnm->imagepos;
+		byte *sourcepos = data + pnm->pos;
+		byte *table = pnm->input_table;
+
+		if (table) for (i = bytes_per_line; i; i--) {
+			*imagepos++ = table[*sourcepos++];
+		} else {
+			memcpy(imagepos, sourcepos, bytes_per_line);
+			imagepos += bytes_per_line;
+			sourcepos += bytes_per_line;
+		}
+
+		pnm->imagepos += pnm->image->bytes_per_line;
+		pnm->pos += bytes_per_line;
+		if (pnm->lineProc) pnm->lineProc(pnm->closure, pnm->ypos, pnm->ypos);
+		pnm->ypos++;
+	}
+	if (pnm->ypos < pnm->image->height) return PNM_NEED_DATA;
+	pnm->state = PNM_FINISHED;
+	return PNM_SUCCESS;
 }
 
 static int
 lf_read_asc(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  int bytes_per_line = pnm->image->width * pnm->image->pixlen;
-  bytes_per_line += CHAR_BITS - 1;
-  bytes_per_line /= CHAR_BITS;
-  
-  while(pnm->ypos < pnm->image->height)
-  {
-    if(lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA)
-      return PNM_NEED_DATA;
-    if(data[pnm->pos] == '#')
-    {
-      int t = pnm->pos;
-      lf_skip_line(pnm, data, len);
-      if(t == pnm->pos) return PNM_NEED_DATA;
-      continue;
-    }
-    if(!lf_punctuation_ahead(pnm, data, len))
-      return PNM_NEED_DATA;
-    {
-      int t;
-      if(lf_read_int(pnm, data, len, &t)) return PNM_ERROR;
-      if(t < 0) return PNM_ERROR;
-      if(t > pnm->max_val) return PNM_ERROR;
-      if(pnm->input_table) *pnm->imagepos++ = pnm->input_table[t];
-      else *pnm->imagepos++ = t;
-      pnm->xpos++;
-    }
-    if(pnm->xpos >= bytes_per_line)
-    {
-      pnm->xpos = 0;
-      pnm->imagepos += pnm->image->bytes_per_line - bytes_per_line;
-      if(pnm->lineProc) pnm->lineProc(pnm->closure, pnm->ypos, pnm->ypos);
-      pnm->ypos++;
-    }
-  }
-  pnm->state = PNM_FINISHED;
-  return PNM_SUCCESS;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	int bytes_per_line = pnm->image->width * pnm->image->pixlen;
+	bytes_per_line += CHAR_BITS - 1;
+	bytes_per_line /= CHAR_BITS;
+
+	while (pnm->ypos < pnm->image->height) {
+		if (lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA)
+			return PNM_NEED_DATA;
+		if (data[pnm->pos] == '#') {
+			int t = pnm->pos;
+			lf_skip_line(pnm, data, len);
+			if (t == pnm->pos) return PNM_NEED_DATA;
+			continue;
+		}
+		if (!lf_punctuation_ahead(pnm, data, len))
+			return PNM_NEED_DATA;
+		{
+			int t;
+			if (lf_read_int(pnm, data, len, &t)) return PNM_ERROR;
+			if (t < 0) return PNM_ERROR;
+			if (t > pnm->max_val) return PNM_ERROR;
+			if (pnm->input_table) *pnm->imagepos++ = pnm->input_table[t];
+			else *pnm->imagepos++ = t;
+			pnm->xpos++;
+		}
+		if (pnm->xpos >= bytes_per_line) {
+			pnm->xpos = 0;
+			pnm->imagepos += pnm->image->bytes_per_line - bytes_per_line;
+			if (pnm->lineProc) pnm->lineProc(pnm->closure, pnm->ypos, pnm->ypos);
+			pnm->ypos++;
+		}
+	}
+	pnm->state = PNM_FINISHED;
+	return PNM_SUCCESS;
 }
 
 /*
  * This reads those 11010101 10 01101 10 10 101010-type pbm ascii bit
  * files. I really don't like this format, so I'm not going to put a
- * lot of effort into optimising this. It's an unashamed performance
+ * lot of effort into optimizing this. It's an unashamed performance
  * disaster.
  */
-
 static int
 lf_read_asc_bit(
-  pnmState *pnm,
-  byte *data,
-  int len)
-{
-  int bytes_per_line = pnm->image->width;
-  bytes_per_line += CHAR_BITS - 1;
-  bytes_per_line /= CHAR_BITS;
+	pnmState *pnm,
+	byte *data,
+	int len) {
+	int bytes_per_line = pnm->image->width;
+	bytes_per_line += CHAR_BITS - 1;
+	bytes_per_line /= CHAR_BITS;
 
-  while(pnm->ypos < pnm->image->height)
-  {
-    while(pnm->pos < len && data[pnm->pos] != '1' && data[pnm->pos] != '0')
-      if(lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA)
-        return PNM_NEED_DATA;
-    if(pnm->pos >= len) return PNM_NEED_DATA;
+	while (pnm->ypos < pnm->image->height) {
+		while (pnm->pos < len && data[pnm->pos] != '1' && data[pnm->pos] != '0')
+			if (lf_skip_whitespace(pnm, data, len) == PNM_NEED_DATA)
+				return PNM_NEED_DATA;
+		if (pnm->pos >= len) return PNM_NEED_DATA;
 
-    if(data[pnm->pos] == '1')
-    {
+		if (data[pnm->pos] == '1') {
 #     ifdef CHIMERA_LITTLE_ENDIAN
-        *pnm->imagepos |= 1 << (pnm->xpos % CHAR_BITS);
+			*pnm->imagepos |= 1 << (pnm->xpos % CHAR_BITS);
 #     else
-        *pnm->imagepos |= 1 << (7 - (pnm->xpos % CHAR_BITS));
+			*pnm->imagepos |= 1 << (7 - (pnm->xpos % CHAR_BITS));
 #     endif
-    }
-    pnm->pos++;
-    pnm->xpos++;
-    if(pnm->xpos % CHAR_BITS == 0)
-    {
-      pnm->imagepos++;
-    }
-    if(pnm->xpos >= pnm->image->width)
-    {
-      pnm->imagepos += pnm->image->bytes_per_line - bytes_per_line;
-      pnm->xpos = 0;
-      if(pnm->lineProc) pnm->lineProc(pnm->closure, pnm->ypos, pnm->ypos);
-      pnm->ypos++;
-    }
-  }
-  pnm->state = PNM_FINISHED;
-  return PNM_SUCCESS;
+		}
+		pnm->pos++;
+		pnm->xpos++;
+		if (pnm->xpos % CHAR_BITS == 0) {
+			pnm->imagepos++;
+		}
+		if (pnm->xpos >= pnm->image->width) {
+			pnm->imagepos += pnm->image->bytes_per_line - bytes_per_line;
+			pnm->xpos = 0;
+			if (pnm->lineProc) pnm->lineProc(pnm->closure, pnm->ypos, pnm->ypos);
+			pnm->ypos++;
+		}
+	}
+	pnm->state = PNM_FINISHED;
+	return PNM_SUCCESS;
 }
 
 /*
@@ -487,56 +447,51 @@ byte *data;
 int len;
 bool data_ended;
 {
-  pnmState *pnm = (pnmState *)pointer;
-  int rval;
+	pnmState *pnm = (pnmState *)pointer;
+	int rval;
 
-  for ( ; ; )
-  {
-    switch (pnm->state)
-    {
-      case PNM_READ_MAGIC:
-        rval = lf_read_magic(pnm, data, len);
-        break;
-      case PNM_READ_WIDTH:
-        rval = lf_read_width(pnm, data, len);
-	break;
-      case PNM_READ_HEIGHT:
-        rval = lf_read_height(pnm, data, len);
-	break;
-      case PNM_READ_MAX_VAL:
-        rval = lf_read_max_val(pnm, data, len);
-	break;
-      case PNM_READ_PRE_RAW_NEWLINE:
-        rval = lf_read_pre_raw_newline(pnm, data, len);
-	break;
-      case PNM_READ_RAW:
-        rval = lf_read_raw(pnm, data, len);
-	break;
-      case PNM_READ_ASC:
-        rval = lf_read_asc(pnm, data, len);
-	break;
-      case PNM_READ_ASC_BIT:
-        rval = lf_read_asc_bit(pnm, data, len);
-	break;
-      case PNM_FINISHED:
-        return 0;
-    }
-    if (rval == PNM_NEED_DATA)
-    {
-      if(data_ended) return -1;
-      return(1);
-    }
-    else if (rval != PNM_SUCCESS) return(-1);
-  }
+	for (; ; ) {
+		switch (pnm->state) {
+			case PNM_READ_MAGIC:
+				rval = lf_read_magic(pnm, data, len);
+				break;
+			case PNM_READ_WIDTH:
+				rval = lf_read_width(pnm, data, len);
+				break;
+			case PNM_READ_HEIGHT:
+				rval = lf_read_height(pnm, data, len);
+				break;
+			case PNM_READ_MAX_VAL:
+				rval = lf_read_max_val(pnm, data, len);
+				break;
+			case PNM_READ_PRE_RAW_NEWLINE:
+				rval = lf_read_pre_raw_newline(pnm, data, len);
+				break;
+			case PNM_READ_RAW:
+				rval = lf_read_raw(pnm, data, len);
+				break;
+			case PNM_READ_ASC:
+				rval = lf_read_asc(pnm, data, len);
+				break;
+			case PNM_READ_ASC_BIT:
+				rval = lf_read_asc_bit(pnm, data, len);
+				break;
+			case PNM_FINISHED:
+				return 0;
+		}
+		if (rval == PNM_NEED_DATA) {
+			if (data_ended) return -1;
+			return(1);
+		} else if (rval != PNM_SUCCESS) return(-1);
+	}
 
-  return(-1);
+	return(-1);
 }
 
 static Image *
-pnmGetImage(void *pointer)
-{
-  pnmState *pnm = (pnmState *)pointer;
-  return pnm->image;
+pnmGetImage(void *pointer) {
+	pnmState *pnm = (pnmState *)pointer;
+	return pnm->image;
 }
 
 
@@ -551,18 +506,17 @@ FormatLineProc lineProc;
 void *closure;
 struct ifs_vector *if_vector;
 {
-  pnmState *pnm;
-  
-  pnm = (pnmState *)alloc_mem(sizeof(pnmState));
-  memset(pnm, 0, sizeof(pnmState));
-  pnm->state = PNM_READ_MAGIC;
-  pnm->lineProc = lineProc;
-  pnm->closure = closure;
+	pnmState *pnm;
 
-  if_vector->image_format_closure = (void *)pnm;
-  if_vector->initProc = &pnmInit;
-  if_vector->destroyProc = &pnmDestroy;
-  if_vector->addDataProc = &pnmAddData;
-  if_vector->getImageProc = &pnmGetImage;
+	pnm = (pnmState *)malloc(sizeof(pnmState));
+	memset(pnm, 0, sizeof(pnmState));
+	pnm->state = PNM_READ_MAGIC;
+	pnm->lineProc = lineProc;
+	pnm->closure = closure;
+
+	if_vector->image_format_closure = (void *)pnm;
+	if_vector->initProc = &pnmInit;
+	if_vector->destroyProc = &pnmDestroy;
+	if_vector->addDataProc = &pnmAddData;
+	if_vector->getImageProc = &pnmGetImage;
 }
-

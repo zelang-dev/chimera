@@ -19,40 +19,35 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "html.h"
 
-struct HTMLInlineP
-{
-  HTMLInfo li;
+struct HTMLInlineP {
+	HTMLInfo li;
 
-  ChimeraGUI wd;
-  ChimeraSink wp;
-  ChimeraRender wn;
-  HTMLInlineInfo ii;
+	ChimeraGUI wd;
+	ChimeraSink wp;
+	ChimeraRender wn;
+	HTMLInlineInfo ii;
 
-  bool setupcalled;
+	bool setupcalled;
 
-  HTMLBox box;
+	HTMLBox box;
 
-  unsigned int width, height, border;
-  unsigned int vspace, hspace;
-  char *mapurl;
-  bool ismap;
-  HTMLEnv env;
-  bool delayed;
+	unsigned int width, height, border;
+	unsigned int vspace, hspace;
+	char *mapurl;
+	bool ismap;
+	HTMLEnv env;
+	bool delayed;
 
-  ChimeraRenderHooks orh;
-  void *rc;
+	ChimeraRenderHooks orh;
+	void *rc;
 };
 
 static int ImgInit _ArgProto((ChimeraSink, void *));
@@ -65,7 +60,7 @@ static bool InlineSelectCallback _ArgProto((void *, int, int, char *));
 static bool InlineMotionCallback _ArgProto((void *, int, int));
 
 void InlineResizeCallback _ArgProto((ChimeraGUI, void *,
-					    unsigned int, unsigned int));
+	unsigned int, unsigned int));
 
 static void InlineContinue _ArgProto((HTMLInline));
 
@@ -81,12 +76,11 @@ static void
 InlineContinue(isp)
 HTMLInline isp;
 {
-  if (isp->delayed)
-  {
-    isp->delayed = false;
-    HTMLContinueLayout(isp->li);
-  }
-  return;
+	if (isp->delayed) {
+		isp->delayed = false;
+		HTMLContinueLayout(isp->li);
+	}
+	return;
 }
 
 /*
@@ -97,15 +91,14 @@ SetupInline(li, box)
 HTMLInfo li;
 HTMLBox box;
 {
-  HTMLInline isp = (HTMLInline)box->closure;
+	HTMLInline isp = (HTMLInline)box->closure;
 
-  isp->setupcalled = true;
-  if (isp->wd != NULL)
-  {
-    GUIMap(isp->wd, box->x + isp->hspace, box->y + isp->vspace);
-  }
+	isp->setupcalled = true;
+	if (isp->wd != NULL) {
+		GUIMap(isp->wd, box->x + isp->hspace, box->y + isp->vspace);
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -116,25 +109,22 @@ DestroyInline(li, box)
 HTMLInfo li;
 HTMLBox box;
 {
-  HTMLInline isp = (HTMLInline)box->closure;
+	HTMLInline isp = (HTMLInline)box->closure;
 
-  if (isp->wn != NULL)
-  {
-    RenderDestroy(isp->wn);
-    isp->wn = NULL;
-  }
-  if (isp->wp != NULL)
-  {
-    SinkSetHooks(isp->wp, NULL, NULL);
-    isp->wp = NULL;
-  }
-  if (isp->wd != NULL)
-  {
-    GUIDestroy(isp->wd);
-    isp->wd = NULL;
-  }
+	if (isp->wn != NULL) {
+		RenderDestroy(isp->wn);
+		isp->wn = NULL;
+	}
+	if (isp->wp != NULL) {
+		SinkSetHooks(isp->wp, NULL, NULL);
+		isp->wp = NULL;
+	}
+	if (isp->wd != NULL) {
+		GUIDestroy(isp->wd);
+		isp->wd = NULL;
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -144,31 +134,31 @@ static void
 AddInline(isp)
 HTMLInline isp;
 {
-  HTMLBox box;
-  HTMLAttribID aid;
-  int border;
+	HTMLBox box;
+	HTMLAttribID aid;
+	int border;
 
-  isp->box = box = HTMLCreateBox(isp->li, isp->env);
-  
-  if ((border = MLAttributeToInt(isp->ii.p, "border")) < 0) isp->border = 0;
-  else isp->border = border;
+	isp->box = box = HTMLCreateBox(isp->li, isp->env);
 
-  aid = HTMLAttributeToID(isp->ii.p, "align");
-  if (aid == ATTRIB_MIDDLE) box->baseline = isp->height / 2;
-  else if (aid == ATTRIB_TOP) box->baseline = 0;
-  else if (aid == ATTRIB_LEFT) HTMLSetB(box, BOX_FLOAT_LEFT);
-  else if (aid == ATTRIB_RIGHT) HTMLSetB(box, BOX_FLOAT_RIGHT);
-  else box->baseline = isp->height;
+	if ((border = MLAttributeToInt(isp->ii.p, "border")) < 0) isp->border = 0;
+	else isp->border = border;
 
-  box->setup = SetupInline;
-  box->destroy = DestroyInline;
-  box->width = isp->width + isp->hspace * 2;
-  box->height = isp->height + isp->vspace * 2;
-  box->closure = isp;
-  
-  HTMLEnvAddBox(isp->li, isp->env, box);
+	aid = HTMLAttributeToID(isp->ii.p, "align");
+	if (aid == ATTRIB_MIDDLE) box->baseline = isp->height / 2;
+	else if (aid == ATTRIB_TOP) box->baseline = 0;
+	else if (aid == ATTRIB_LEFT) HTMLSetB(box, BOX_FLOAT_LEFT);
+	else if (aid == ATTRIB_RIGHT) HTMLSetB(box, BOX_FLOAT_RIGHT);
+	else box->baseline = isp->height;
 
-  return;
+	box->setup = SetupInline;
+	box->destroy = DestroyInline;
+	box->width = isp->width + isp->hspace * 2;
+	box->height = isp->height + isp->vspace * 2;
+	box->closure = isp;
+
+	HTMLEnvAddBox(isp->li, isp->env, box);
+
+	return;
 }
 
 /*
@@ -180,17 +170,16 @@ ChimeraGUI wd;
 void *closure;
 unsigned int width, height;
 {
-  HTMLInline isp = (HTMLInline)closure;
+	HTMLInline isp = (HTMLInline)closure;
 
-  if (isp->box == NULL)
-  {
-    isp->width = width;
-    isp->height = height;
-    AddInline(isp);
-    InlineContinue(isp);
-  }
+	if (isp->box == NULL) {
+		isp->width = width;
+		isp->height = height;
+		AddInline(isp);
+		InlineContinue(isp);
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -202,34 +191,30 @@ void *closure;
 int x, y;
 char *action;
 {
-  HTMLInline isp = (HTMLInline)closure;
-  HTMLAnchor a;
-  GList list;
-  char *url;
+	HTMLInline isp = (HTMLInline)closure;
+	HTMLAnchor a;
+	GList list;
+	char *url;
 
-  myassert(isp->box != NULL, "MouseCallback: box == NULL");
+	myassert(isp->box != NULL, "MouseCallback: box == NULL");
 
-  if (isp->mapurl != NULL)
-  {
-    if ((url = HTMLFindMapURL(isp->li, isp->mapurl, x, y)) != NULL)
-    {
-      HTMLLoadURL(isp->li, NULL, url, action);
-      return(true);
-    }
-  }
+	if (isp->mapurl != NULL) {
+		if ((url = HTMLFindMapURL(isp->li, isp->mapurl, x, y)) != NULL) {
+			HTMLLoadURL(isp->li, NULL, url, action);
+			return(true);
+		}
+	}
 
-  list = isp->li->alist;
-  for (a = (HTMLAnchor)GListGetHead(list); a != NULL;
-       a = (HTMLAnchor)GListGetNext(list))
-  {
-    if (a->box == isp->box)
-    {
-      HTMLLoadAnchor(isp->li, a, x, y, action, isp->ismap);
-      return(true);
-    }
-  }
+	list = isp->li->alist;
+	for (a = (HTMLAnchor)GListGetHead(list); a != NULL;
+		a = (HTMLAnchor)GListGetNext(list)) {
+		if (a->box == isp->box) {
+			HTMLLoadAnchor(isp->li, a, x, y, action, isp->ismap);
+			return(true);
+		}
+	}
 
-  return(true);
+	return(true);
 }
 
 static bool
@@ -237,36 +222,32 @@ InlineMotionCallback(closure, x, y)
 void *closure;
 int x, y;
 {
-  HTMLInline isp = (HTMLInline)closure;
-  HTMLAnchor a;
-  GList list;
-  char *url;
+	HTMLInline isp = (HTMLInline)closure;
+	HTMLAnchor a;
+	GList list;
+	char *url;
 
-  myassert(isp->box != NULL, "MotionCallback: box == NULL");
+	myassert(isp->box != NULL, "MotionCallback: box == NULL");
 
-  if (isp->mapurl != NULL)
-  {
-    if ((url = HTMLFindMapURL(isp->li, isp->mapurl, x, y)) != NULL)
-    {
-      HTMLPrintURL(isp->li, url);
-      return(true);
-    }
-  }
+	if (isp->mapurl != NULL) {
+		if ((url = HTMLFindMapURL(isp->li, isp->mapurl, x, y)) != NULL) {
+			HTMLPrintURL(isp->li, url);
+			return(true);
+		}
+	}
 
-  isp->li->over = NULL;
-  list = isp->li->alist;
-  for (a = (HTMLAnchor)GListGetHead(list); a != NULL;
-       a = (HTMLAnchor)GListGetNext(list))
-  {
-    if (a->box == isp->box)
-    {
-      HTMLPrintAnchor(isp->li, a, x, y, isp->ismap);
-      isp->li->over = a;
-      return(true);
-    }
-  }
+	isp->li->over = NULL;
+	list = isp->li->alist;
+	for (a = (HTMLAnchor)GListGetHead(list); a != NULL;
+		a = (HTMLAnchor)GListGetNext(list)) {
+		if (a->box == isp->box) {
+			HTMLPrintAnchor(isp->li, a, x, y, isp->ismap);
+			isp->li->over = a;
+			return(true);
+		}
+	}
 
-  return(true);
+	return(true);
 }
 
 /*
@@ -277,10 +258,10 @@ ImgMessage(closure, message)
 void *closure;
 char *message;
 {
-  HTMLInline isp = (HTMLInline)closure;
+	HTMLInline isp = (HTMLInline)closure;
 
-  if (isp->li->wn != NULL) RenderSendMessage(isp->li->wn, message);
-  return;
+	if (isp->li->wn != NULL) RenderSendMessage(isp->li->wn, message);
+	return;
 }
 
 /*
@@ -290,9 +271,9 @@ static void
 ImgEnd(closure)
 void *closure;
 {
-  HTMLInline isp = (HTMLInline)closure;
-  RenderEnd(isp->wn);
-  return;
+	HTMLInline isp = (HTMLInline)closure;
+	RenderEnd(isp->wn);
+	return;
 }
 
 /*
@@ -302,9 +283,9 @@ static void
 ImgAdd(closure)
 void *closure;
 {
-  HTMLInline isp = (HTMLInline)closure;
-  RenderAdd(isp->wn);
-  return;
+	HTMLInline isp = (HTMLInline)closure;
+	RenderAdd(isp->wn);
+	return;
 }
 
 /*
@@ -315,38 +296,34 @@ ImgInit(wp, closure)
 ChimeraSink wp;
 void *closure;
 {
-  HTMLInline isp = (HTMLInline)closure;
-  ChimeraRenderHooks *rh;
-  char *ctype;
+	HTMLInline isp = (HTMLInline)closure;
+	ChimeraRenderHooks *rh;
+	char *ctype;
 
-  ctype = SinkGetInfo(wp, "content-type");
-  if ((rh = RenderGetHooks(SinkToResources(wp), ctype)) == NULL)
-  {
-    SinkCancel(wp);
-    InlineContinue(isp);
-    return(-1);
-  }
+	ctype = SinkGetInfo(wp, "content-type");
+	if ((rh = RenderGetHooks(SinkToResources(wp), ctype)) == NULL) {
+		SinkCancel(wp);
+		InlineContinue(isp);
+		return(-1);
+	}
 
-  isp->wd = GUICreate(isp->li->wc, isp->li->wd, InlineResizeCallback, isp);
-  if (isp->width > 0 && isp->height > 0)
-  {
-    GUISetInitialDimensions(isp->wd, isp->width, isp->height);
-  }
-  if (isp->setupcalled)
-  {
-    GUIMap(isp->wd, isp->box->x + isp->hspace, isp->box->y + isp->vspace);
-  }
+	isp->wd = GUICreate(isp->li->wc, isp->li->wd, InlineResizeCallback, isp);
+	if (isp->width > 0 && isp->height > 0) {
+		GUISetInitialDimensions(isp->wd, isp->width, isp->height);
+	}
+	if (isp->setupcalled) {
+		GUIMap(isp->wd, isp->box->x + isp->hspace, isp->box->y + isp->vspace);
+	}
 
-  isp->wn = RenderCreate(isp->li->wc, isp->wd, isp->wp,
-			 rh, &(isp->orh), isp->rc, NULL,
-			 NULL, NULL);
-  if (isp->wn == NULL)
-  {
-    SinkCancel(wp);
-    return(-1);
-  }
+	isp->wn = RenderCreate(isp->li->wc, isp->wd, isp->wp,
+		rh, &(isp->orh), isp->rc, NULL,
+		NULL, NULL);
+	if (isp->wn == NULL) {
+		SinkCancel(wp);
+		return(-1);
+	}
 
-  return(0);
+	return(0);
 }
 
 /*
@@ -363,77 +340,67 @@ HTMLInlineInfo *ii;
 ChimeraRenderHooks *orh;
 void *rc;
 {
-  ChimeraSinkHooks hooks;
-  HTMLInline isp;
-  ChimeraRequest *wr;
-  int width, height, vspace, hspace;
+	ChimeraSinkHooks hooks;
+	HTMLInline isp;
+	ChimeraRequest *wr;
+	int width, height, vspace, hspace;
 
-  if ((wr = RequestCreate(li->cres, url, li->burl)) == NULL)
-  {
-    return(NULL);
-  }
+	if ((wr = RequestCreate(li->cres, url, li->burl)) == NULL) {
+		return(NULL);
+	}
 
-  if (li->reload) HandleInlineReload(li, wr);
+	if (li->reload) HandleInlineReload(li, wr);
 
-  /* Select only image content that we can deal with directly */
-  if (RequestAddRegexContent(li->cres, wr, "image/*") <= 0)
-  {
-    RequestDestroy(wr);
-    return(NULL);
-  }
+	/* Select only image content that we can deal with directly */
+	if (RequestAddRegexContent(li->cres, wr, "image/*") <= 0) {
+		RequestDestroy(wr);
+		return(NULL);
+	}
 
-  isp = (HTMLInline)MPCGet(li->mp, sizeof(struct HTMLInlineP));
-  memcpy(&(isp->ii), ii, sizeof(HTMLInlineInfo));
-  isp->li = li;
-  isp->env = env;
-  if (orh == NULL)
-  {
-    memset(&(isp->orh), 0, sizeof(isp->orh));
-    isp->orh.select = InlineSelectCallback;
-    isp->orh.motion = InlineMotionCallback;
-    isp->rc = isp;
-  }
-  else
-  {
-    memcpy(&(isp->orh), orh, sizeof(ChimeraRenderHooks));
-    isp->rc = rc;
-  }
+	isp = (HTMLInline)MPCGet(li->mp, sizeof(struct HTMLInlineP));
+	memcpy(&(isp->ii), ii, sizeof(HTMLInlineInfo));
+	isp->li = li;
+	isp->env = env;
+	if (orh == NULL) {
+		memset(&(isp->orh), 0, sizeof(isp->orh));
+		isp->orh.select = InlineSelectCallback;
+		isp->orh.motion = InlineMotionCallback;
+		isp->rc = isp;
+	} else {
+		memcpy(&(isp->orh), orh, sizeof(ChimeraRenderHooks));
+		isp->rc = rc;
+	}
 
-  if ((width = MLAttributeToInt(ii->p, "width")) < 0) isp->width = 0;
-  else isp->width = width;
-  if ((height = MLAttributeToInt(ii->p, "height")) < 0) isp->height = 0;
-  else isp->height = height;
-  if ((vspace = MLAttributeToInt(ii->p, "vspace")) < 0) isp->vspace = 0;
-  else isp->vspace = vspace;
-  if ((hspace = MLAttributeToInt(ii->p, "hspace")) < 0) isp->hspace = 0;
-  else isp->hspace = hspace;
-  isp->ismap = MLFindAttribute(ii->p, "ismap") != NULL ? true:false;
-  isp->mapurl = MLFindAttribute(ii->p, "usemap");
- 
-  if (isp->width == 0 || isp->height == 0)
-  {
-    isp->delayed = true;
-    HTMLDelayLayout(li);
-  }
-  else AddInline(isp);
+	if ((width = MLAttributeToInt(ii->p, "width")) < 0) isp->width = 0;
+	else isp->width = width;
+	if ((height = MLAttributeToInt(ii->p, "height")) < 0) isp->height = 0;
+	else isp->height = height;
+	if ((vspace = MLAttributeToInt(ii->p, "vspace")) < 0) isp->vspace = 0;
+	else isp->vspace = vspace;
+	if ((hspace = MLAttributeToInt(ii->p, "hspace")) < 0) isp->hspace = 0;
+	else isp->hspace = hspace;
+	isp->ismap = MLFindAttribute(ii->p, "ismap") != NULL ? true : false;
+	isp->mapurl = MLFindAttribute(ii->p, "usemap");
 
-  memset(&hooks, 0, sizeof(hooks));
-  hooks.init = ImgInit;
-  hooks.add = ImgAdd;
-  hooks.end = ImgEnd;
-  hooks.message = ImgMessage;
+	if (isp->width == 0 || isp->height == 0) {
+		isp->delayed = true;
+		HTMLDelayLayout(li);
+	} else AddInline(isp);
 
-  if ((isp->wp = SinkCreate(li->cres, wr)) == NULL)
-  {
-    InlineContinue(isp);
-  }
-  else
-  {
-    SinkSetHooks(isp->wp, &hooks, isp);
-    GListAddHead(li->sinks, isp->wp);
-  }
+	memset(&hooks, 0, sizeof(hooks));
+	hooks.init = ImgInit;
+	hooks.add = ImgAdd;
+	hooks.end = ImgEnd;
+	hooks.message = ImgMessage;
 
-  return(isp);
+	if ((isp->wp = SinkCreate(li->cres, wr)) == NULL) {
+		InlineContinue(isp);
+	} else {
+		SinkSetHooks(isp->wp, &hooks, isp);
+		GListAddHead(li->sinks, isp->wp);
+	}
+
+	return(isp);
 }
 
 /*
@@ -443,7 +410,7 @@ HTMLBox
 HTMLInlineToBox(is)
 HTMLInline is;
 {
-  return(is->box);
+	return(is->box);
 }
 
 /*
@@ -453,7 +420,7 @@ HTMLInfo
 HTMLInlineToInfo(is)
 HTMLInline is;
 {
-  return(is->li);
+	return(is->li);
 }
 
 /*
@@ -463,7 +430,7 @@ void
 HTMLInlineDestroy(is)
 HTMLInline is;
 {
-  return;
+	return;
 }
 
 /*
@@ -475,17 +442,17 @@ HTMLInfo li;
 HTMLEnv env;
 MLElement p;
 {
-  char *url;
-  HTMLInlineInfo ii;
+	char *url;
+	HTMLInlineInfo ii;
 
-  if ((url = MLFindAttribute(p, "src")) == NULL) return;
+	if ((url = MLFindAttribute(p, "src")) == NULL) return;
 
-  memset(&ii, 0, sizeof(HTMLInlineInfo));
-  ii.p = p;
+	memset(&ii, 0, sizeof(HTMLInlineInfo));
+	ii.p = p;
 
-  HTMLCreateInline(li, env, url, &ii, NULL, NULL);
+	HTMLCreateInline(li, env, url, &ii, NULL, NULL);
 
-  return;
+	return;
 }
 
 /*
@@ -501,33 +468,30 @@ HTMLInfo li;
 HTMLEnv env;
 MLElement p;
 {
-  char *url;
-  ChimeraRequest *wr;
-  ChimeraSink wp;
+	char *url;
+	ChimeraRequest *wr;
+	ChimeraSink wp;
 
-  if ((url = MLFindAttribute(p, "src")) == NULL) return(HTMLInsertOK);
+	if ((url = MLFindAttribute(p, "src")) == NULL) return(HTMLInsertOK);
 
-  if ((wr = RequestCreate(li->cres, url, li->burl)) == NULL)
-  {
-    return(HTMLInsertOK);
-  }
+	if ((wr = RequestCreate(li->cres, url, li->burl)) == NULL) {
+		return(HTMLInsertOK);
+	}
 
-  if (li->reload) HandleInlineReload(li, wr);
+	if (li->reload) HandleInlineReload(li, wr);
 
-  /* Select only image content that we can deal with directly */
-  if (RequestAddRegexContent(li->cres, wr, "image/*") <= 0)
-  {
-    RequestDestroy(wr);
-    return(HTMLInsertOK);
-  }
+	/* Select only image content that we can deal with directly */
+	if (RequestAddRegexContent(li->cres, wr, "image/*") <= 0) {
+		RequestDestroy(wr);
+		return(HTMLInsertOK);
+	}
 
-  if ((wp = SinkCreate(li->cres, wr)) != NULL)
-  {
-    SinkSetHooks(wp, NULL, NULL);
-    GListAddHead(li->sinks, wp);
-  }
+	if ((wp = SinkCreate(li->cres, wr)) != NULL) {
+		SinkSetHooks(wp, NULL, NULL);
+		GListAddHead(li->sinks, wp);
+	}
 
-  return(HTMLInsertOK);
+	return(HTMLInsertOK);
 }
 
 /*
@@ -538,21 +502,18 @@ HandleInlineReload(li, wr)
 HTMLInfo li;
 ChimeraRequest *wr;
 {
-  char *xurl;
+	char *xurl;
 
-  for (xurl = (char *)GListGetHead(li->loads); xurl != NULL;
-       xurl = (char *)GListGetNext(li->loads))
-  {
-    if (strlen(wr->url) == strlen(xurl) && strcmp(wr->url, xurl) == 0)
-    {
-      break;
-    }
-  }
-  if (xurl == NULL)
-  {
-    RequestReload(wr, true);
-    GListAddHead(li->loads, MPStrDup(li->mp, wr->url));
-  }
+	for (xurl = (char *)GListGetHead(li->loads); xurl != NULL;
+		xurl = (char *)GListGetNext(li->loads)) {
+		if (strlen(wr->url) == strlen(xurl) && strcmp(wr->url, xurl) == 0) {
+			break;
+		}
+	}
+	if (xurl == NULL) {
+		RequestReload(wr, true);
+		GListAddHead(li->loads, MPStrDup(li->mp, wr->url));
+	}
 
-  return;
+	return;
 }

@@ -20,17 +20,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
-
 #include <stdio.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
@@ -43,7 +35,6 @@
 #include <X11/Xaw/Toggle.h>
 #include <X11/Xaw/Label.h>
 
-#include "port_after.h"
 
 #include "TextField.h"
 
@@ -80,13 +71,12 @@ static void AddButtons _ArgProto((ChimeraContext, Widget, char *));
 
 static void InstallAccelerators _ArgProto((Widget));
 
-static struct ButtonTable
-{
-  char *name;
-  Boolean toggle;
-  Widget w;
-  void (*cb)();
-  char *accel;
+static struct ButtonTable {
+	char *name;
+	Boolean toggle;
+	Widget w;
+	void (*cb)();
+	char *accel;
 } ButtonTable[] =
 {
   { "quit",     False, NULL, Quit,     ":Meta<KeyUp>q"},
@@ -112,69 +102,63 @@ ChimeraContext wc;
 Widget box;
 char *list;
 {
-  char name[256];
-  struct ButtonTable *btp;
-  char accel[256];
+	char name[256];
+	struct ButtonTable *btp;
+	char accel[256];
 
-  while (sscanf(list, " %[^,]", name) == 1)
-  {
-    /*
-     * Find the listed button and create its widget
-     */
-    for (btp = &ButtonTable[0]; btp->name != NULL; btp++)
-    {
-      if (!strcasecmp(btp->name, name))
-      {
-        if (btp->toggle)
-        {
-          snprintf(accel, sizeof(accel) - 1,
-		   "%s: toggle() notify()", btp->accel);
-	  btp->w = XtVaCreateManagedWidget(btp->name,
-					   toggleWidgetClass, box,
-                                           XtNaccelerators,
-					   XtParseAcceleratorTable(accel),
-					   NULL);
-        }
-        else
-        {
-          snprintf(accel, sizeof(accel) - 1, 
-		   "%s: set() notify() unset()", btp->accel);
-	  btp->w = XtVaCreateManagedWidget(btp->name,
-					   commandWidgetClass, box,
-                                           XtNaccelerators,
-					   XtParseAcceleratorTable(accel),
-					   NULL);
-        }
-	XtAddCallback(btp->w, XtNcallback, btp->cb, (XtPointer)wc);
-	break;
-      }
-    }
+	while (sscanf(list, " %[^,]", name) == 1) {
+	  /*
+	   * Find the listed button and create its widget
+	   */
+		for (btp = &ButtonTable[0]; btp->name != NULL; btp++) {
+			if (!strcasecmp(btp->name, name)) {
+				if (btp->toggle) {
+					snprintf(accel, sizeof(accel) - 1,
+						"%s: toggle() notify()", btp->accel);
+					btp->w = XtVaCreateManagedWidget(btp->name,
+						toggleWidgetClass, box,
+						XtNaccelerators,
+						XtParseAcceleratorTable(accel),
+						NULL);
+				} else {
+					snprintf(accel, sizeof(accel) - 1,
+						"%s: set() notify() unset()", btp->accel);
+					btp->w = XtVaCreateManagedWidget(btp->name,
+						commandWidgetClass, box,
+						XtNaccelerators,
+						XtParseAcceleratorTable(accel),
+						NULL);
+				}
+				XtAddCallback(btp->w, XtNcallback, btp->cb, (XtPointer)wc);
+				break;
+			}
+		}
 
-    if (!strcasecmp(name, "open")) wc->open = btp->w;
-    else if (!strcasecmp(name, "back")) wc->back = btp->w;
-    else if (!strcasecmp(name, "reload")) wc->reload = btp->w;
-    else if (!strcasecmp(name, "cancel")) wc->cancel = btp->w;
-    else if (!strcasecmp(name, "quit")) wc->quit = btp->w;
-    else if (!strcasecmp(name, "home")) wc->home = btp->w;
-    else if (!strcasecmp(name, "help")) wc->help = btp->w;
-    else if (!strcasecmp(name, "dup")) wc->dup = btp->w;
-    else if (!strcasecmp(name, "addmark")) wc->addmark = btp->w;
-    else if (!strcasecmp(name, "viewmark")) wc->viewmark = btp->w;
-    else if (!strcasecmp(name, "source")) wc->source = btp->w;
-    else if (!strcasecmp(name, "save")) wc->save = btp->w;
-    else if (!strcasecmp(name, "find")) wc->find = btp->w;
-    else if (!strcasecmp(name, "bookmark")) wc->bookmark = btp->w;
+		if (!strcasecmp(name, "open")) wc->open = btp->w;
+		else if (!strcasecmp(name, "back")) wc->back = btp->w;
+		else if (!strcasecmp(name, "reload")) wc->reload = btp->w;
+		else if (!strcasecmp(name, "cancel")) wc->cancel = btp->w;
+		else if (!strcasecmp(name, "quit")) wc->quit = btp->w;
+		else if (!strcasecmp(name, "home")) wc->home = btp->w;
+		else if (!strcasecmp(name, "help")) wc->help = btp->w;
+		else if (!strcasecmp(name, "dup")) wc->dup = btp->w;
+		else if (!strcasecmp(name, "addmark")) wc->addmark = btp->w;
+		else if (!strcasecmp(name, "viewmark")) wc->viewmark = btp->w;
+		else if (!strcasecmp(name, "source")) wc->source = btp->w;
+		else if (!strcasecmp(name, "save")) wc->save = btp->w;
+		else if (!strcasecmp(name, "find")) wc->find = btp->w;
+		else if (!strcasecmp(name, "bookmark")) wc->bookmark = btp->w;
 
-    /*
-     * Skip to the next comma-delimited item in the list
-     */
-    while (*list && *list != ',')
-      list++;
-    if (*list == ',')
-      list++;
-  }
+		/*
+		 * Skip to the next comma-delimited item in the list
+		 */
+		while (*list && *list != ',')
+			list++;
+		if (*list == ',')
+			list++;
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -184,11 +168,11 @@ static void
 InstallAccelerators(w)
 Widget w;
 {
- struct ButtonTable *btp;
+	struct ButtonTable *btp;
 
- for (btp = &ButtonTable[0]; btp->name != NULL; btp++)
-    if(btp->w)
-       XtInstallAllAccelerators(w,btp->w);
+	for (btp = &ButtonTable[0]; btp->name != NULL; btp++)
+		if (btp->w)
+			XtInstallAllAccelerators(w, btp->w);
 }
 
 #define BUTTON_LIST "quit, open, home, back, reload, source, save, bookmark, dup, find, cancel"
@@ -200,9 +184,9 @@ Widget w;
 static XtResource       resource_list[] =
 {
   { "button1Box", "BoxList", XtRString, sizeof(char *),
-        offset(button1Box), XtRString, BUTTON_LIST },
+		offset(button1Box), XtRString, BUTTON_LIST },
   { "button2Box", "BoxList", XtRString, sizeof(char *),
-        offset(button2Box), XtRString, NULL },
+		offset(button2Box), XtRString, NULL },
 };
 
 /*
@@ -215,81 +199,79 @@ CreateWidgets(wc, name)
 ChimeraContext wc;
 char *name;
 {
-  Widget paned, box, form;
-  Atom delete;
+	Widget paned, box, form;
+	Atom delete;
 
-  wc->toplevel = XtVaAppCreateShell(name, "Chimera",
-				    topLevelShellWidgetClass,
-				    wc->cres->dpy,
-				    NULL);
+	wc->toplevel = XtVaAppCreateShell(name, "Chimera",
+		topLevelShellWidgetClass,
+		wc->cres->dpy,
+		NULL);
 
-  XtGetApplicationResources(wc->toplevel, wc,
-                            resource_list, XtNumber(resource_list),
-                            NULL, 0);
+	XtGetApplicationResources(wc->toplevel, wc,
+		resource_list, XtNumber(resource_list),
+		NULL, 0);
 
-  /*
-   * Main window pane
-   */
-  paned = XtCreateManagedWidget("paned",
-                                panedWidgetClass, wc->toplevel, 
-                                NULL, 0);
+/*
+ * Main window pane
+ */
+	paned = XtCreateManagedWidget("paned",
+		panedWidgetClass, wc->toplevel,
+		NULL, 0);
 
-  /*
-   * Button pane(s)
-   */
-  if (wc->button1Box && *wc->button1Box)
-  {
-    box = XtCreateManagedWidget("box1", boxWidgetClass, paned, NULL, 0);
-    AddButtons(wc, box, wc->button1Box);
-  }
+/*
+ * Button pane(s)
+ */
+	if (wc->button1Box && *wc->button1Box) {
+		box = XtCreateManagedWidget("box1", boxWidgetClass, paned, NULL, 0);
+		AddButtons(wc, box, wc->button1Box);
+	}
 
-  if (wc->button2Box && *wc->button2Box)
-  {
-    box = XtCreateManagedWidget("box2", boxWidgetClass, paned, NULL, 0);
-    AddButtons(wc, box, wc->button2Box);
-  }
+	if (wc->button2Box && *wc->button2Box) {
+		box = XtCreateManagedWidget("box2", boxWidgetClass, paned, NULL, 0);
+		AddButtons(wc, box, wc->button2Box);
+	}
 
-  /*
-   * URL pane
-   */
-  form = XtVaCreateManagedWidget("urlform", formWidgetClass, paned, NULL);
-  XtVaCreateManagedWidget("urllabel", labelWidgetClass, form, NULL);
-  wc->url = XtVaCreateManagedWidget("url",
-				    textfieldWidgetClass, form,
-				    XtNstring, "",
-				    NULL);
-				   
-  XtOverrideTranslations(wc->url,
-                         XtParseTranslationTable
-                         ("<Key>Return: ReturnAction()"));
+	/*
+	 * URL pane
+	 */
+	form = XtVaCreateManagedWidget("urlform", formWidgetClass, paned, NULL);
+	XtVaCreateManagedWidget("urllabel", labelWidgetClass, form, NULL);
+	wc->url = XtVaCreateManagedWidget("url",
+		textfieldWidgetClass, form,
+		XtNstring, "",
+		NULL);
 
-  /*
-   * Message pane.
-   */
-  box = XtCreateManagedWidget("box4", boxWidgetClass, paned, NULL, 0);
-  wc->message = XtVaCreateManagedWidget("message",
-					textfieldWidgetClass, box,
-					NULL);
+	XtOverrideTranslations(wc->url,
+		XtParseTranslationTable
+		("<Key>Return: ReturnAction()"));
 
-  /*
-   * WWW widget
-   */
-  wc->tstack = StackCreateToplevel(wc, paned);
+/*
+ * Message pane.
+ */
+	box = XtCreateManagedWidget("box4", boxWidgetClass, paned, NULL, 0);
+	wc->message = XtVaCreateManagedWidget("message",
+		textfieldWidgetClass, box,
+		NULL);
 
-  XtRealizeWidget(wc->toplevel);
+/*
+ * WWW widget
+ */
+	wc->tstack = StackCreateToplevel(wc, paned);
 
-  delete = XInternAtom(XtDisplay(wc->toplevel), "WM_DELETE_WINDOW", False);
-  XSetWMProtocols (wc->cres->dpy, XtWindow(wc->toplevel), &delete, 1);
-  XtOverrideTranslations (wc->toplevel,
-                          XtParseTranslationTable
-                          ("<Message>WM_PROTOCOLS: DeleteAction()"));
+	XtRealizeWidget(wc->toplevel);
 
-  /*
-   * Accelerators
-   */
-  InstallAccelerators(paned);
+	delete = XInternAtom(XtDisplay(wc->toplevel), "WM_DELETE_WINDOW", False);
+	XSetWMProtocols(wc->cres->dpy, XtWindow(wc->toplevel), &delete, 1);
+	XtOverrideTranslations(wc->toplevel,
+		XtParseTranslationTable
+		("<Message>WM_PROTOCOLS: DeleteAction()"));
 
-  return;
+/*
+ * Accelerators
+ */
+	InstallAccelerators(paned);
+
+	return;
 }
 
 /*
@@ -299,14 +281,14 @@ void
 HeadDestroy(wc)
 ChimeraContext wc;
 {
-  StackDestroy(wc->tstack);
-  GListRemoveItem(wc->cres->heads, wc);
-  XtDestroyWidget(wc->toplevel);
-  MPDestroy(wc->mp);
+	StackDestroy(wc->tstack);
+	GListRemoveItem(wc->cres->heads, wc);
+	XtDestroyWidget(wc->toplevel);
+	MPDestroy(wc->mp);
 
-  ChimeraRemoveReference(wc->cres);
+	ChimeraRemoveReference(wc->cres);
 
-  return;
+	return;
 }
 
 /*
@@ -317,9 +299,9 @@ ClearDialogValue(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  if ((w = XtParent(w)) != NULL) MyDialogSetValue(w, "");
+	if ((w = XtParent(w)) != NULL) MyDialogSetValue(w, "");
 
-  return;
+	return;
 }
 
 /*
@@ -334,33 +316,33 @@ void (*dfunc)();
 void (*rfunc)();
 XtPointer closure;
 {
-  Widget w, dw;
-  Window rw, cw;
-  int rx, ry, wx, wy;
-  unsigned int mask;
+	Widget w, dw;
+	Window rw, cw;
+	int rx, ry, wx, wy;
+	unsigned int mask;
 
-  XQueryPointer(XtDisplay(p), DefaultRootWindow(XtDisplay(p)),
-                &rw, &cw,
+	XQueryPointer(XtDisplay(p), DefaultRootWindow(XtDisplay(p)),
+		&rw, &cw,
 		&rx, &ry,
 		&wx, &wy,
 		&mask);
-  w = XtVaCreatePopupShell(name,
-			   transientShellWidgetClass, p,
-			   XtNx, rx - 2,
-			   XtNy, ry - 2,
-			   NULL);
-  dw = XtVaCreateManagedWidget("dialog",
-			       mydialogWidgetClass, w,
-			       XtNvalue, "",
-			       NULL);
-  MyDialogAddButton(dw, "ok", ofunc, closure);
-  MyDialogAddButton(dw, "clear", ClearDialogValue, closure);
-  MyDialogAddButton(dw, "dismiss", dfunc, closure);
-  XtAddCallback(dw, XtNcallback, rfunc, closure);
+	w = XtVaCreatePopupShell(name,
+		transientShellWidgetClass, p,
+		XtNx, rx - 2,
+		XtNy, ry - 2,
+		NULL);
+	dw = XtVaCreateManagedWidget("dialog",
+		mydialogWidgetClass, w,
+		XtNvalue, "",
+		NULL);
+	MyDialogAddButton(dw, "ok", ofunc, closure);
+	MyDialogAddButton(dw, "clear", ClearDialogValue, closure);
+	MyDialogAddButton(dw, "dismiss", dfunc, closure);
+	XtAddCallback(dw, XtNcallback, rfunc, closure);
 
-  XtRealizeWidget(w);
+	XtRealizeWidget(w);
 
-  return(w);
+	return(w);
 }
 
 /*
@@ -370,7 +352,7 @@ Widget
 GetDialogWidget(w)
 Widget w;
 {
-  return(XtNameToWidget(w, "dialog"));
+	return(XtNameToWidget(w, "dialog"));
 }
 
 /*
@@ -381,15 +363,15 @@ OOpen(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  char *url;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	char *url;
 
-  if ((url = MyDialogGetValue(GetDialogWidget(wc->openpop))) == NULL) return;
+	if ((url = MyDialogGetValue(GetDialogWidget(wc->openpop))) == NULL) return;
 
-  StackOpen(wc->tstack, RequestCreate(wc->cres, url, NULL));
-  XtPopdown(wc->openpop); 
+	StackOpen(wc->tstack, RequestCreate(wc->cres, url, NULL));
+	XtPopdown(wc->openpop);
 
-  return;
+	return;
 }
 
 /*
@@ -400,9 +382,9 @@ DOpen(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  XtPopdown(wc->openpop); 
-  return;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	XtPopdown(wc->openpop);
+	return;
 }
 
 /*
@@ -413,16 +395,15 @@ Open(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
+	ChimeraContext wc = (ChimeraContext)cldata;
 
-  if (wc->openpop == NULL)
-  {
-    wc->openpop = CreateDialog(wc->toplevel, "openpop",
-			       OOpen, DOpen, OOpen, (XtPointer)wc);
-  }
-  XtPopup(wc->openpop, XtGrabNone);
+	if (wc->openpop == NULL) {
+		wc->openpop = CreateDialog(wc->toplevel, "openpop",
+			OOpen, DOpen, OOpen, (XtPointer)wc);
+	}
+	XtPopup(wc->openpop, XtGrabNone);
 
-  return;
+	return;
 }
 
 /*
@@ -433,9 +414,9 @@ Back(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  StackBack(wc->tstack);
-  return;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	StackBack(wc->tstack);
+	return;
 }
 
 /*
@@ -446,9 +427,9 @@ Reload(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  StackReload(wc->tstack);
-  return;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	StackReload(wc->tstack);
+	return;
 }
 
 /*
@@ -459,9 +440,9 @@ Cancel(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  StackCancel(wc->tstack);
-  return;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	StackCancel(wc->tstack);
+	return;
 }
 
 /*
@@ -472,8 +453,8 @@ Quit(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  HeadDestroy((ChimeraContext)cldata);
-  return;
+	HeadDestroy((ChimeraContext)cldata);
+	return;
 }
 
 /*
@@ -484,17 +465,16 @@ Source(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
+	ChimeraContext wc = (ChimeraContext)cldata;
 
-  if (wc->cres->plainhooks == NULL) XtVaSetValues(w, XtNstate, False, NULL);
-  else
-  {
-    if (cbdata) StackSetRender(wc->tstack, wc->cres->plainhooks);
-    else StackSetRender(wc->tstack, NULL);
-    StackRedraw(wc->tstack);
-  }
+	if (wc->cres->plainhooks == NULL) XtVaSetValues(w, XtNstate, False, NULL);
+	else {
+		if (cbdata) StackSetRender(wc->tstack, wc->cres->plainhooks);
+		else StackSetRender(wc->tstack, NULL);
+		StackRedraw(wc->tstack);
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -505,20 +485,19 @@ Save(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  char *url;
-  ChimeraRequest *wr;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	char *url;
+	ChimeraRequest *wr;
 
-  if ((url = StackGetCurrentURL(wc->tstack)) == NULL) return;
+	if ((url = StackGetCurrentURL(wc->tstack)) == NULL) return;
 
-  if ((wr = RequestCreate(wc->cres, url, NULL)) == NULL)
-  {
-    TextFieldSetString(wc->message, "Invalid URL.");
-    return;
-  }
-  DownloadOpen(wc->cres, wr);
+	if ((wr = RequestCreate(wc->cres, url, NULL)) == NULL) {
+		TextFieldSetString(wc->message, "Invalid URL.");
+		return;
+	}
+	DownloadOpen(wc->cres, wr);
 
-  return;
+	return;
 }
 
 /*
@@ -529,9 +508,9 @@ Home(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  StackHome(wc->tstack);
-  return;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	StackHome(wc->tstack);
+	return;
 }
 
 /*
@@ -542,15 +521,14 @@ Help(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  char *url;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	char *url;
 
-  if ((url = ResourceGetString(wc->cres, "chimera.helpURL")) != NULL)
-  {
-    StackOpen(wc->tstack, RequestCreate(wc->cres, url, NULL));
-  }
+	if ((url = ResourceGetString(wc->cres, "chimera.helpURL")) != NULL) {
+		StackOpen(wc->tstack, RequestCreate(wc->cres, url, NULL));
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -561,22 +539,21 @@ Dup(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  char *url;
-  ChimeraRequest *wr;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	char *url;
+	ChimeraRequest *wr;
 
-  /* grab URL from to-be-cloned window */
-  if ((url = ResourceGetString(wc->cres, "chimera.cloneHome")) == NULL)
-  {
-    url = StackGetCurrentURL(wc->tstack);
-  }
+	/* grab URL from to-be-cloned window */
+	if ((url = ResourceGetString(wc->cres, "chimera.cloneHome")) == NULL) {
+		url = StackGetCurrentURL(wc->tstack);
+	}
 
-  if (url != NULL) wr = RequestCreate(wc->cres, url, NULL);
-  else wr = NULL;
+	if (url != NULL) wr = RequestCreate(wc->cres, url, NULL);
+	else wr = NULL;
 
-  HeadCreate(wc->cres, NULL, wr);
+	HeadCreate(wc->cres, NULL, wr);
 
-  return;
+	return;
 }
 
 /*
@@ -587,20 +564,20 @@ AddMark(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  char *title;
-  char *url;
-  ChimeraRender wn;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	char *title;
+	char *url;
+	ChimeraRender wn;
 
-  if (wc->cres->bc == NULL) return;
+	if (wc->cres->bc == NULL) return;
 
-  wn = StackToRender(wc->tstack);
-  if ((url = RenderQuery(wn, "url")) == NULL) return;
-  if ((title = RenderQuery(wn, "title")) == NULL) title = url;
+	wn = StackToRender(wc->tstack);
+	if ((url = RenderQuery(wn, "url")) == NULL) return;
+	if ((title = RenderQuery(wn, "title")) == NULL) title = url;
 
-  BookmarkAdd(wc->cres->bc, title, url);
+	BookmarkAdd(wc->cres->bc, title, url);
 
-  return;
+	return;
 }
 
 /*
@@ -611,27 +588,26 @@ ViewMark(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  MemPool mp;
-  char *filename;
-  char *url;
-  const char *fformat = "file:%s";
+	ChimeraContext wc = (ChimeraContext)cldata;
+	MemPool mp;
+	char *filename;
+	char *url;
+	const char *fformat = "file:%s";
 
-  mp = MPCreate();
+	mp = MPCreate();
 
-  if ((filename = ResourceGetFilename(wc->cres,
-				      mp, "bookmark.filename")) == NULL)
-  {
-    return;
-  }
+	if ((filename = ResourceGetFilename(wc->cres,
+		mp, "bookmark.filename")) == NULL) {
+		return;
+	}
 
-  url = (char *)MPGet(mp, strlen(fformat) + strlen(filename) + 1);
-  sprintf (url, fformat, filename);
-  StackOpen(wc->tstack, RequestCreate(wc->cres, url, NULL));
+	url = (char *)MPGet(mp, strlen(fformat) + strlen(filename) + 1);
+	sprintf(url, fformat, filename);
+	StackOpen(wc->tstack, RequestCreate(wc->cres, url, NULL));
 
-  MPDestroy(mp);
+	MPDestroy(mp);
 
-  return;
+	return;
 }
 
 /*
@@ -642,12 +618,12 @@ Bookmark(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
+	ChimeraContext wc = (ChimeraContext)cldata;
 
-  wc->cres->bmcontext = wc;
-  if (wc->cres->bc != NULL) BookmarkShow(wc->cres->bc);
+	wc->cres->bmcontext = wc;
+	if (wc->cres->bc != NULL) BookmarkShow(wc->cres->bc);
 
-  return;
+	return;
 }
 
 /*
@@ -658,19 +634,18 @@ OFind(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  char *str;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	char *str;
 
-  if ((str = MyDialogGetValue(GetDialogWidget(wc->findpop))) == NULL)
-  {
-    return;
-  }
+	if ((str = MyDialogGetValue(GetDialogWidget(wc->findpop))) == NULL) {
+		return;
+	}
 
-  RenderSearch(StackToRender(wc->tstack), str, 0);
+	RenderSearch(StackToRender(wc->tstack), str, 0);
 
-  XtPopdown(wc->findpop); 
+	XtPopdown(wc->findpop);
 
-  return;
+	return;
 }
 
 /*
@@ -681,29 +656,24 @@ DFind(w, cldata, cbdata)
 Widget w;
 XtPointer cldata, cbdata;
 {
-  ChimeraContext wc = (ChimeraContext)cldata;
-  XtPopdown(wc->findpop); 
-  return;
+	ChimeraContext wc = (ChimeraContext)cldata;
+	XtPopdown(wc->findpop);
+	return;
 }
 
 /*
  * Find
  */
-static void
-Find(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
-  ChimeraContext wc = (ChimeraContext)cldata;
+static void Find(Widget w, XtPointer cldata, XtPointer cbdata) {
+	ChimeraContext wc = (ChimeraContext)cldata;
 
-  if (wc->findpop == NULL)
-  {
-    wc->findpop = CreateDialog(wc->toplevel, "findpop",
-			       OFind, DFind, OFind, (XtPointer)wc);
-  }
-  XtPopup(wc->findpop, XtGrabNone);
+	if (wc->findpop == NULL) {
+		wc->findpop = CreateDialog(wc->toplevel, "findpop",
+			OFind, DFind, OFind, (XtPointer)wc);
+	}
+	XtPopup(wc->findpop, XtGrabNone);
 
-  return;
+	return;
 }
 
 /*
@@ -712,138 +682,115 @@ XtPointer cldata, cbdata;
  * Frontend that sorts out which URL to use for a new head and then
  * creates a new head.
  */
-void
-HeadCreate(cres, first, lastresort)
-ChimeraResources cres;
-ChimeraRequest *first;
-ChimeraRequest *lastresort;
-{
-  ChimeraContext wc;
-  char *buffer;
-  char *url;
-  int count;
-  MemPool mp;
-  ChimeraRequest *wr = NULL;
-  char base_url[255];
+void HeadCreate(ChimeraResources cres, ChimeraRequest *first, ChimeraRequest *lastresort) {
+	ChimeraContext wc;
+	char *buffer;
+	char *url;
+	int count;
+	MemPool mp;
+	ChimeraRequest *wr = NULL;
+	char base_url[255];
 
-  /*
-   * Default base URL; this allows filenames to be used on the
-   * command line
-   */
-  strcpy( base_url, "file:" ) ;
-  getcwd( base_url + 5, sizeof(base_url) - 5 ) ;
-  strcat( base_url, "/" ) ;
+	/*
+	 * Default base URL; this allows filenames to be used on the
+	 * command line
+	 */
+	strcpy(base_url, "file:");
+	getcwd(base_url + 5, sizeof(base_url) - 5);
+	strcat(base_url, "/");
 
-  ChimeraAddReference(cres);
+	ChimeraAddReference(cres);
 
-  mp = MPCreate();
-  wc = (ChimeraContext)MPCGet(mp, sizeof(struct ChimeraContextP));
-  wc->mp = mp;
-  wc->cres = cres;
+	mp = MPCreate();
+	wc = (ChimeraContext)MPCGet(mp, sizeof(struct ChimeraContextP));
+	wc->mp = mp;
+	wc->cres = cres;
 
-  GListAddHead(cres->heads, wc);
+	GListAddHead(cres->heads, wc);
 
-  CreateWidgets(wc, "chimera");
+	CreateWidgets(wc, "chimera");
 
-  /*
-   * If an override URL is supplied then try to use that.
-   */
-  if (first != NULL) wr = first;
+	/*
+	 * If an override URL is supplied then try to use that.
+	 */
+	if (first != NULL) wr = first;
 
-  /*
-   * Look inside the cutbuffer for a valid URL.
-   */
-  if (wr == NULL)
-  {
-    buffer = XFetchBytes(cres->dpy, &count);
-    if (count > 0)
-    {
-      mp = MPCreate();
-      url = (char *)MPCGet(mp, count + 1);
-      memcpy(url, buffer, count);
-      url[count] = '\0';
-      
-      XFree(buffer);
-      
-      if ((wr = RequestCreate(wc->cres, url, base_url)) != NULL)
-      {
-	XStoreBytes(cres->dpy, "", 0);
-      }
-      
-      MPDestroy(mp);
-    }
-  }
+	/*
+	 * Look inside the cutbuffer for a valid URL.
+	 */
+	if (wr == NULL) {
+		buffer = XFetchBytes(cres->dpy, &count);
+		if (count > 0) {
+			mp = MPCreate();
+			url = (char *)MPCGet(mp, count + 1);
+			memcpy(url, buffer, count);
+			url[count] = '\0';
 
-  /*
-   * Look for the caller-supplied last resort.
-   */
-  if (wr == NULL && lastresort != NULL) wr = lastresort;
+			XFree(buffer);
 
-  /*
-   * Check the standard environment variable.
-   */
-  if (wr == NULL)
-  {
-    if ((url = getenv("WWW_HOME")) != NULL)
-    {
-      if ((wr = RequestCreate(wc->cres, url, base_url)) == NULL)
-      {
-	fprintf (stderr, "WWW_HOME (%s) is invalid.\n", url);
-      }
-    }
-  }
+			if ((wr = RequestCreate(wc->cres, url, base_url)) != NULL) {
+				XStoreBytes(cres->dpy, "", 0);
+			}
 
-  /*
-   * Check the chimera resource variable.
-   */
-  if (wr == NULL)
-  {
-    if ((url = ResourceGetString(wc->cres, "chimera.homeURL")) != NULL)
-    {
-      if ((wr = RequestCreate(wc->cres, url, base_url)) == NULL)
-      {
-	fprintf (stderr, "chimera.homeURL (%s) is invalid.\n", url);
-      }
-    }
-  }
+			MPDestroy(mp);
+		}
+	}
 
-  /*
-   * This better work...
-   */
-  if (wr == NULL)
-  {
-    wr = RequestCreate(wc->cres, "file:/", NULL);
-  }
+	/*
+	 * Look for the caller-supplied last resort.
+	 */
+	if (wr == NULL && lastresort != NULL) wr = lastresort;
 
-  myassert(wr != NULL, "ERROR: No valud URLs found for new head.\n");
+	/*
+	 * Check the standard environment variable.
+	 */
+	if (wr == NULL) {
+		if ((url = getenv("WWW_HOME")) != NULL) {
+			if ((wr = RequestCreate(wc->cres, url, base_url)) == NULL) {
+				fprintf(stderr, "WWW_HOME (%s) is invalid.\n", url);
+			}
+		}
+	}
 
-  StackOpen(wc->tstack, wr);
+	/*
+	 * Check the chimera resource variable.
+	 */
+	if (wr == NULL) {
+		if ((url = ResourceGetString(wc->cres, "chimera.homeURL")) != NULL) {
+			if ((wr = RequestCreate(wc->cres, url, base_url)) == NULL) {
+				fprintf(stderr, "chimera.homeURL (%s) is invalid.\n", url);
+			}
+		}
+	}
 
-  return;
+	/*
+	 * This better work...
+	 */
+	if (wr == NULL) {
+		wr = RequestCreate(wc->cres, "file:/", NULL);
+	}
+
+	myassert(wr != NULL, "ERROR: No valud URLs found for new head.\n");
+
+	StackOpen(wc->tstack, wr);
+
+	return;
 }
 
 /*
  * HeadPrintMessage
  */
-void
-HeadPrintMessage(wc, message)
-ChimeraContext wc;
-char *message;
-{
-  if (message == NULL) message = "";
-  TextFieldSetString(wc->message, message);
-  return;
+void HeadPrintMessage(ChimeraContext wc, char *message) {
+	if (message == NULL) message = "";
+	TextFieldSetString(wc->message, message);
+	return;
 }
 
 /*
  * HeadPrintURL
  */
-void
-HeadPrintURL(wc, url)
-ChimeraContext wc;
-char *url;
-{
-  if (url == NULL) url = "";
-  TextFieldSetString(wc->url, url);
-  return;
+void HeadPrintURL(ChimeraContext wc, char *url) {
+	if (url == NULL) url = "";
+	TextFieldSetString(wc->url, url);
+	return;
 }

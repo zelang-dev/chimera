@@ -17,7 +17,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -30,10 +29,12 @@
 #ifdef __EMX__
 #define FNDELAY O_NDELAY
 #endif
-#include <fcntl.h>
 #endif
 #if (defined(SYSV) || defined(SVR4)) && (defined(sun) || defined(hpux) || defined(_nec_ews_svr4))
 #include <sys/file.h>
+#endif
+#ifndef __USE_MISC
+#	define __USE_MISC 1
 #endif
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -42,52 +43,44 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#ifdef HAVE_STDLIB_H
+#include <features.h>
+#include <fcntl.h>
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
+#include <string.h>
 
 #include <X11/IntrinsicP.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 
 #include "ChimeraStream.h"
 
-struct ChimeraStreamP
-{
-  bool                  destroyed;
-  MemPool               mp;
-  ChimeraResources      cres;
-  int                   s;
-  int                   as;
-  unsigned long         addr;
-  int                   port;
-  bool                  bound;
-  bool                  accepted;
-  
-  /* read callback */
-  ChimeraStreamCallback rdfunc;
-  void                  *rdclosure;
-  byte                  *rdb;
-  size_t                rdlen;
-  XtInputId             rdid;
+struct ChimeraStreamP {
+	bool                  destroyed;
+	MemPool               mp;
+	ChimeraResources      cres;
+	int                   s;
+	int                   as;
+	unsigned long         addr;
+	int                   port;
+	bool                  bound;
+	bool                  accepted;
 
-  /* write callback */
-  ChimeraStreamCallback wrfunc;
-  void                  *wrclosure;
-  byte                  *wrb;
-  size_t                wrmax;
-  size_t                wri;
-  XtInputId             wrid;
+	/* read callback */
+	ChimeraStreamCallback rdfunc;
+	void *rdclosure;
+	byte *rdb;
+	size_t                rdlen;
+	XtInputId             rdid;
+
+	/* write callback */
+	ChimeraStreamCallback wrfunc;
+	void *wrclosure;
+	byte *wrb;
+	size_t                wrmax;
+	size_t                wri;
+	XtInputId             wrid;
 };
 
 static void WriteStreamHandler _ArgProto((XtPointer, int *, XtInputId *));
@@ -102,35 +95,30 @@ XtPointer cldata;
 int *netfd;
 XtInputId *xid;
 {
-  ChimeraStream ps = (ChimeraStream)cldata;
-  ssize_t wlen;
-  int s;
+	ChimeraStream ps = (ChimeraStream)cldata;
+	ssize_t wlen;
+	int s;
 
-  if (ps->bound) s = ps->as;
-  else s = ps->s;
+	if (ps->bound) s = ps->as;
+	else s = ps->s;
 
-  wlen = write(s, ps->wrb + ps->wri, ps->wrmax - ps->wri);
-  if (wlen < 0)
-  {
-    if (errno != EWOULDBLOCK)
-    {
-      XtRemoveInput(ps->wrid);
-      ps->wrid = 0;
-      CMethod(ps->wrfunc)(ps, -1, ps->wrclosure);
-    }
-  }
-  else
-  {
-    ps->wri += wlen;
-    if (ps->wri == ps->wrmax)
-    {
-      XtRemoveInput(ps->wrid);
-      ps->wrid = 0;
-      CMethod(ps->wrfunc)(ps, 0, ps->wrclosure);
-    }
-  }
+	wlen = write(s, ps->wrb + ps->wri, ps->wrmax - ps->wri);
+	if (wlen < 0) {
+		if (errno != EWOULDBLOCK) {
+			XtRemoveInput(ps->wrid);
+			ps->wrid = 0;
+			CMethod(ps->wrfunc)(ps, -1, ps->wrclosure);
+		}
+	} else {
+		ps->wri += wlen;
+		if (ps->wri == ps->wrmax) {
+			XtRemoveInput(ps->wrid);
+			ps->wrid = 0;
+			CMethod(ps->wrfunc)(ps, 0, ps->wrclosure);
+		}
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -142,47 +130,39 @@ XtPointer cldata;
 int *netfd;
 XtInputId *xid;
 {
-  ChimeraStream ps = (ChimeraStream)cldata;
-  ssize_t rlen;
-  struct sockaddr addr;
-  int s;
-  int namlen;
+	ChimeraStream ps = (ChimeraStream)cldata;
+	ssize_t rlen;
+	struct sockaddr addr;
+	int s;
+	int namlen;
 
-  if (ps->bound)
-  {
-    if (!ps->accepted)
-    {
-      namlen = sizeof(addr);
-      if ((ps->as = accept(ps->s, &addr, &namlen)) < 0)
-      {
-	XtRemoveInput(ps->rdid);
-	ps->rdid = 0;
-	CMethod(ps->rdfunc)(ps, -1, ps->rdclosure);
-      }
-      ps->accepted = true;
-    }
-    s = ps->as;
-  }
-  else s = ps->s;
+	if (ps->bound) {
+		if (!ps->accepted) {
+			namlen = sizeof(addr);
+			if ((ps->as = accept(ps->s, &addr, &namlen)) < 0) {
+				XtRemoveInput(ps->rdid);
+				ps->rdid = 0;
+				CMethod(ps->rdfunc)(ps, -1, ps->rdclosure);
+			}
+			ps->accepted = true;
+		}
+		s = ps->as;
+	} else s = ps->s;
 
-  rlen = read(s, ps->rdb, ps->rdlen);
-  if (rlen < 0)
-  {
-    if (errno != EWOULDBLOCK)
-    {
-      XtRemoveInput(ps->rdid);
-      ps->rdid = 0;
-      CMethod(ps->rdfunc)(ps, rlen, ps->rdclosure);
-    }
-  }
-  else
-  {
-    XtRemoveInput(ps->rdid);
-    ps->rdid = 0;
-    CMethod(ps->rdfunc)(ps, rlen, ps->rdclosure);
-  }
+	rlen = read(s, ps->rdb, ps->rdlen);
+	if (rlen < 0) {
+		if (errno != EWOULDBLOCK) {
+			XtRemoveInput(ps->rdid);
+			ps->rdid = 0;
+			CMethod(ps->rdfunc)(ps, rlen, ps->rdclosure);
+		}
+	} else {
+		XtRemoveInput(ps->rdid);
+		ps->rdid = 0;
+		CMethod(ps->rdfunc)(ps, rlen, ps->rdclosure);
+	}
 
-  return;
+	return;
 }
 
 /*
@@ -196,22 +176,22 @@ size_t blen;
 ChimeraStreamCallback func;
 void *closure;
 {
-  int s;
+	int s;
 
-  myassert(!ps->destroyed, "ChimeraStream destroyed");
+	myassert(!ps->destroyed, "ChimeraStream destroyed");
 
-  if (ps->bound && ps->accepted) s = ps->as;
-  else s = ps->s;
+	if (ps->bound && ps->accepted) s = ps->as;
+	else s = ps->s;
 
-  ps->rdb = b;
-  ps->rdlen = blen;
-  ps->rdfunc = func;
-  ps->rdclosure = closure;
-  ps->rdid = XtAppAddInput(ps->cres->appcon, s,
-			   (XtPointer)XtInputReadMask,
-			   ReadStreamHandler, (XtPointer)ps);
+	ps->rdb = b;
+	ps->rdlen = blen;
+	ps->rdfunc = func;
+	ps->rdclosure = closure;
+	ps->rdid = XtAppAddInput(ps->cres->appcon, s,
+		(XtPointer)XtInputReadMask,
+		ReadStreamHandler, (XtPointer)ps);
 
-  return;
+	return;
 }
 
 /*
@@ -225,19 +205,19 @@ size_t blen;
 ChimeraStreamCallback func;
 void *closure;
 {
-  myassert(!ps->destroyed, "ChimeraStream destroyed.");
+	myassert(!ps->destroyed, "ChimeraStream destroyed.");
 
-  ps->wrb = b;
-  ps->wri = 0;
-  ps->wrmax = blen;
-  ps->wrfunc = func;
-  ps->wrclosure = closure;
-  ps->wrid = XtAppAddInput(ps->cres->appcon,
-			   ps->s,
-			   (XtPointer)XtInputWriteMask,
-			   WriteStreamHandler, (XtPointer)ps);
+	ps->wrb = b;
+	ps->wri = 0;
+	ps->wrmax = blen;
+	ps->wrfunc = func;
+	ps->wrclosure = closure;
+	ps->wrid = XtAppAddInput(ps->cres->appcon,
+		ps->s,
+		(XtPointer)XtInputWriteMask,
+		WriteStreamHandler, (XtPointer)ps);
 
-  return;
+	return;
 }
 
 /*
@@ -249,55 +229,51 @@ ChimeraResources cres;
 char *host;
 int port;
 {
-  ChimeraStream ps;
-  int s;
-  int rval;
-  struct sockaddr_in addr;
-  struct hostent *hp;
-  MemPool mp;
+	ChimeraStream ps;
+	int s;
+	int rval;
+	struct sockaddr_in addr;
+	struct hostent *hp;
+	MemPool mp;
 
-  if (host == NULL) return(NULL);
+	if (host == NULL) return(NULL);
 
-  memset(&addr, 0, sizeof(addr));
+	memset(&addr, 0, sizeof(addr));
 
-  /* fix by Jim Rees so that numeric addresses are dealt with */
-  if ((addr.sin_addr.s_addr = inet_addr(host)) == -1)
-  {
-    if ((hp = (struct hostent *)gethostbyname(host)) == NULL)
-    {
-      return(NULL);
-    }
-    memcpy(&(addr.sin_addr), hp->h_addr, hp->h_length);
-  }
+	/* fix by Jim Rees so that numeric addresses are dealt with */
+	if ((addr.sin_addr.s_addr = inet_addr(host)) == -1) {
+		if ((hp = (struct hostent *)gethostbyname(host)) == NULL) {
+			return(NULL);
+		}
+		memcpy(&(addr.sin_addr), hp->h_addr, hp->h_length);
+	}
 
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons((unsigned short)port);
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons((unsigned short)port);
 
-  s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (s < 0) return(NULL);
+	s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (s < 0) return(NULL);
 
 #ifdef __QNX__
-  ioctl(s, FNDELAY, 0);
+	ioctl(s, FNDELAY, 0);
 #else
-  fcntl(s, F_SETFL, FNDELAY);
+	fcntl(s, F_SETFL, FNDELAY);
 #endif
 
-  if ((rval = connect(s, (struct sockaddr *)&addr, sizeof(addr))) != 0)
-  {
-    if (errno != EINPROGRESS)
-    {
-      close(s);
-      return(NULL);
-    }
-  }
+	if ((rval = connect(s, (struct sockaddr *)&addr, sizeof(addr))) != 0) {
+		if (errno != EINPROGRESS) {
+			close(s);
+			return(NULL);
+		}
+	}
 
-  mp = MPCreate();
-  ps = (ChimeraStream)MPCGet(mp, sizeof(struct ChimeraStreamP));
-  ps->mp = mp;
-  ps->cres = cres;
-  ps->s = s;
+	mp = MPCreate();
+	ps = (ChimeraStream)MPCGet(mp, sizeof(struct ChimeraStreamP));
+	ps->mp = mp;
+	ps->cres = cres;
+	ps->s = s;
 
-  return((ChimeraStream)ps);
+	return((ChimeraStream)ps);
 }
 
 /*
@@ -307,76 +283,68 @@ ChimeraStream
 StreamCreateINet2(cres)
 ChimeraResources cres;
 {
-  MemPool mp;
-  ChimeraStream ps;
-  int s;
-  struct sockaddr_in addr;
-  struct sockaddr_in xaddr;
-  struct hostent *hp;
-  int namlen;
-  char host[BUFSIZ];
+	MemPool mp;
+	ChimeraStream ps;
+	int s;
+	struct sockaddr_in addr;
+	struct sockaddr_in xaddr;
+	struct hostent *hp;
+	int namlen;
+	char host[BUFSIZ];
 
-  s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (s < 0) return(NULL);
+	s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (s < 0) return(NULL);
 
-  addr.sin_addr.s_addr = INADDR_ANY;
-  addr.sin_family = AF_INET;
-  addr.sin_port = 0;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_family = AF_INET;
+	addr.sin_port = 0;
 
-  if (bind(s, (struct sockaddr *) &addr, sizeof (addr)) < 0)
-  {
-    close(s);
-    return(NULL);
-  }
+	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		close(s);
+		return(NULL);
+	}
 
-  if (listen(s, 1) < 0)
-  {
-    close(s);
-    return(NULL);
-  }
+	if (listen(s, 1) < 0) {
+		close(s);
+		return(NULL);
+	}
 
-  if (gethostname(host, sizeof(host) - 1) == 0)
-  {
-    /* fix by Jim Rees so that numeric addresses are dealt with */
-    if ((xaddr.sin_addr.s_addr = inet_addr(host)) == -1)
-    {
-      if ((hp = (struct hostent *)gethostbyname(host)) == NULL)
-      {
-	close(s);
-	return(NULL);
-      }
-      memcpy(&(xaddr.sin_addr), hp->h_addr, hp->h_length);
-    }
-  }
-  else
-  {
-    close(s);
-    return(NULL);
-  }
+	if (gethostname(host, sizeof(host) - 1) == 0) {
+	  /* fix by Jim Rees so that numeric addresses are dealt with */
+		if ((xaddr.sin_addr.s_addr = inet_addr(host)) == -1) {
+			if ((hp = (struct hostent *)gethostbyname(host)) == NULL) {
+				close(s);
+				return(NULL);
+			}
+			memcpy(&(xaddr.sin_addr), hp->h_addr, hp->h_length);
+		}
+	} else {
+		close(s);
+		return(NULL);
+	}
 
-  namlen = sizeof(addr);
-  if (getsockname(s, (struct sockaddr *)&addr, &namlen) < 0)
-  {
-    close(s);
-    return(NULL);
-  }
+	namlen = sizeof(addr);
+	if (getsockname(s, (struct sockaddr *)&addr, &namlen) < 0) {
+		close(s);
+		return(NULL);
+	}
 
 #ifdef __QNX__
-  ioctl(s, FNDELAY, 0);
+	ioctl(s, FNDELAY, 0);
 #else
-  fcntl(s, F_SETFL, FNDELAY);
+	fcntl(s, F_SETFL, FNDELAY);
 #endif
 
-  mp = MPCreate();
-  ps = (ChimeraStream)MPCGet(mp, sizeof(struct ChimeraStreamP));
-  ps->mp = mp;
-  ps->cres = cres;
-  ps->s = s;
-  ps->port = (int)addr.sin_port;
-  ps->addr = xaddr.sin_addr.s_addr;
-  ps->bound = true;
+	mp = MPCreate();
+	ps = (ChimeraStream)MPCGet(mp, sizeof(struct ChimeraStreamP));
+	ps->mp = mp;
+	ps->cres = cres;
+	ps->s = s;
+	ps->port = (int)addr.sin_port;
+	ps->addr = xaddr.sin_addr.s_addr;
+	ps->bound = true;
 
-  return((ChimeraStream)ps);
+	return((ChimeraStream)ps);
 }
 
 /*
@@ -386,15 +354,15 @@ void
 StreamDestroy(ps)
 ChimeraStream ps;
 {
-  myassert(!ps->destroyed, "ChimeraStream destroyed");
+	myassert(!ps->destroyed, "ChimeraStream destroyed");
 
-  ps->destroyed = true;
-  if (ps->rdid != 0) XtRemoveInput(ps->rdid);
-  if (ps->wrid != 0) XtRemoveInput(ps->wrid);
-  close(ps->s);
-  MPDestroy(ps->mp);
+	ps->destroyed = true;
+	if (ps->rdid != 0) XtRemoveInput(ps->rdid);
+	if (ps->wrid != 0) XtRemoveInput(ps->wrid);
+	close(ps->s);
+	MPDestroy(ps->mp);
 
-  return;
+	return;
 }
 
 /*
@@ -404,37 +372,30 @@ int
 StreamGetINetPort(ps)
 ChimeraStream ps;
 {
-  return(ps->port);
+	return(ps->port);
 }
 
 /*
  * StreamGetINetAddr
  */
-unsigned long
-StreamGetINetAddr(ps)
-ChimeraStream ps;
-{
-  return(ps->addr);
+unsigned long StreamGetINetAddr(ChimeraStream ps) {
+	return(ps->addr);
 }
 
 /*
  * StreamCreate
  */
-ChimeraStream
-StreamCreate(cres, fd)
-ChimeraResources cres;
-int fd;
-{
-  MemPool mp;
-  ChimeraStream ps;
+ChimeraStream StreamCreate(ChimeraResources cres, int fd) {
+	MemPool mp;
+	ChimeraStream ps;
 
-  fcntl(fd, F_SETFL, FNDELAY);
+	fcntl(fd, F_SETFL, FNDELAY);
 
-  mp = MPCreate();
-  ps = (ChimeraStream)MPCGet(mp, sizeof(struct ChimeraStreamP));
-  ps->mp = mp;
-  ps->cres = cres;
-  ps->s = fd;
+	mp = MPCreate();
+	ps = (ChimeraStream)MPCGet(mp, sizeof(struct ChimeraStreamP));
+	ps->mp = mp;
+	ps->cres = cres;
+	ps->s = fd;
 
-  return((ChimeraStream)ps);
+	return((ChimeraStream)ps);
 }

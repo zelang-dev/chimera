@@ -18,19 +18,12 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "common.h"
 #include "mime.h"
@@ -126,7 +119,7 @@ char *line;
 	    t = (char *)MPGet(mp, cp - ps + 1);
 	    strncpy(t, ps, cp - ps);
 	    t[cp - ps] = '\0';
-	  
+
 	    if (mf->value == NULL) mf->value = t;
 	    else
 	    {
@@ -201,7 +194,7 @@ size_t len;
 
   usedlen = 0;
   linelen = BUFSIZ;
-  line = (char *)alloc_mem(linelen);
+  line = (char *)malloc(linelen);
 
   le = NULL;
   ls = cp = buf;
@@ -216,7 +209,7 @@ size_t len;
      */
     if (*pcp == '\r') le = pcp;
     else le = cp;
-    
+
     /*
      * If the line start is the same as the line end then it must be
      * a blank line and its time to bail out.
@@ -259,7 +252,7 @@ size_t len;
       usedlen += le - ls;
       line[usedlen] = '\0';
     }
-    
+
     /*
      * Start the next line after the \n
      */
@@ -275,7 +268,7 @@ size_t len;
     usedlen = 0;
   }
 
-  free_mem(line);
+  free(line);
 
   return(0);
 }
@@ -372,12 +365,12 @@ MIMEHeader mh;
 char *line;
 {
   MIMEField f;
-  
+
   if ((f = parse_line(mh->mp, line)) != NULL)
   {
     GListAddTail(mh->list, f);
   }
-    
+
   return;
 }
 

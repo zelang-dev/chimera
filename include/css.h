@@ -23,17 +23,17 @@ typedef struct CSSSelectorP *CSSSelector;
 typedef struct CSSRuleP *CSSRule;
 typedef struct CSSContextP *CSSContext;
 
-typedef void (*CSSProc) _ArgProto((void *));
+typedef void(*CSSProc) _ArgProto((void *));
 
 void CSSDestroyContext _ArgProto((CSSContext));
 
 CSSContext CSSParseBuffer _ArgProto((ChimeraContext,
-				     char *, size_t, CSSProc, void *));
+	char *, size_t, CSSProc, void *));
 
 CSSSelector CSSCreateSelector _ArgProto((MemPool));
 
 void CSSSetSelector _ArgProto((CSSSelector,
-			       char *, char *, char *, char *));
+	char *, char *, char *, char *));
 
 char *CSSFindProperty _ArgProto((CSSContext, GList, char *));
 

@@ -17,13 +17,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
 
 #include <stdio.h>
 
 #include <X11/Intrinsic.h>
 
-#include "port_after.h"
 
 #include "Chimera.h"
 

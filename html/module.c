@@ -19,18 +19,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
-
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "port_after.h"
 
 #include "html.h"
 
@@ -208,7 +202,7 @@ int x, y;
   {
     if (InAnchor(x, y, a->box)) break;
   }
-  
+
   if (a == NULL || a->p == NULL) RenderSendMessage(li->wn, NULL);
   else HTMLPrintAnchor(li, a, x, y, false);
   li->over = a;
@@ -403,7 +397,7 @@ void *state;
   GUIGetNamedColor(wd, "black", &(li->fg));
 
   XSetForeground(li->dpy, li->gc, li->fg);
-  
+
   HTMLSetupFonts(li);
 
   GUISetScrollBar(wd, true);
@@ -492,7 +486,7 @@ ChimeraResources cres;
   {
     if (stat(cssfile, &st) == 0 && (fp = fopen(cssfile, "r")) != NULL)
     {
-      if ((b = (char *)alloc_mem(st.st_size)) == NULL)
+      if ((b = (char *)malloc(st.st_size)) == NULL)
       {
 	while ((rval = fread(b + blen, 1, st.st_size - blen, fp)) > 0 &&
 	       !feof(fp))
@@ -503,10 +497,10 @@ ChimeraResources cres;
 
 	if (blen == st.st_size)
 	{
-	  lc->css = CSSParseBuffer(NULL, b, blen, NULL, NULL); 
+	  lc->css = CSSParseBuffer(NULL, b, blen, NULL, NULL);
 	}
 
-	free_mem(b);
+	free(b);
       }
     }
   }

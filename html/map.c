@@ -19,18 +19,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
 #include <ctype.h>
 
 #include <math.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "html.h"
 
@@ -214,7 +210,7 @@ int x, y;
   if (map == NULL) return(NULL);
 
   list = map->areas;
-  for (area = (HTMLArea)GListGetHead(list); area != NULL; 
+  for (area = (HTMLArea)GListGetHead(list); area != NULL;
        area = (HTMLArea)GListGetNext(list))
   {
     if (area->shape == HTMLMapShapeRect)

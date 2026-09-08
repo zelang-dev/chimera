@@ -17,19 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
 
 #include <stdio.h>
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "Chimera.h"
 #include "ChimeraStream.h"
@@ -42,7 +35,7 @@
  * OK, this is a little bit weird.  The context that is passed is
  * actually the address of the address of the context.  This is
  * because once a context is returned by HTTPInit it can't be
- * changed (at least the way this circus works).  Its convienent
+ * changed (at least the way this circus works).  Its convenient
  * to be able to destroy the context when a new connection is made
  * because of authorization stuff or a redirect occurs.
  */
@@ -62,10 +55,9 @@
 #define HM_SEND 4
 #define HM_WAITING 5
 
-static struct http_message
-{
-  char *name;
-  char *def;
+static struct http_message {
+	char *name;
+	char *def;
 } http_messages[] =
 {
   { "http.open", "Connecting to " },
@@ -77,71 +69,68 @@ static struct http_message
   { NULL, NULL },
 };
 
-typedef struct 
-{
-  char *username;
-  char *password;
-  char *hostname;
-  char *realm;
-  char *type;
-  int port;
+typedef struct {
+	char *username;
+	char *password;
+	char *hostname;
+	char *realm;
+	char *type;
+	int port;
 } HTTPPassword;
 
-typedef struct
-{
-  MemPool mp;
-  char *msg[sizeof(http_messages) / sizeof(http_messages[0])];
-  size_t mlen;
-  GList passwords;       /* username/password/realm cache */
+typedef struct {
+	MemPool mp;
+	char *msg[sizeof(http_messages) / sizeof(http_messages[0])];
+	size_t mlen;
+	GList passwords;       /* username/password/realm cache */
 } HTTPClass;
 
-typedef struct
-{
-  MemPool mp, rmp;
-  ChimeraSource ws;
-  ChimeraResources cres;
+typedef struct {
+	MemPool mp, rmp;
+	ChimeraSource ws;
+	ChimeraResources cres;
 
-  /* addressing stuff */
-  ChimeraRequest *wr;          /* request addresses */
-  char *url;                   /* URL to use for request */
-  URLParts *up;                /* URLParts to use for request */
-  URLParts *pup;               /* proxy server */
+	/* addressing stuff */
+	ChimeraRequest *wr;          /* request addresses */
+	char *url;                   /* URL to use for request */
+	URLParts *up;                /* URLParts to use for request */
+	URLParts *pup;               /* proxy server */
 
-  /* other stuff */
-  HTTPClass *hc;
-  char msgbuf[MSGLEN];
-  int nline;
-  int rcount;
+	/* other stuff */
+	HTTPClass *hc;
+	char msgbuf[MSGLEN];
+	int nline;
+	int rcount;
 
-  /* Information from HTTP status line */
-  int status;
-  int major;
-  int minor;
+	/* Information from HTTP status line */
+	int status;
+	int major;
+	int minor;
 
-  /* authorization stuff */
-  ChimeraAuth wa;
-  HTTPPassword *hp;
-  char *auth_type;    /* used for the Auth callback */
-  char *realm;        /* used for the Auth callback */
+	/* authorization stuff */
+	ChimeraAuth wa;
+	HTTPPassword *hp;
+	char *auth_type;    /* used for the Auth callback */
+	char *realm;        /* used for the Auth callback */
 
-  ChimeraStream ios;
+	ChimeraStream ios;
 
-  /* Information about the data received. */
-  byte *b;
-  size_t blen;
-  size_t bsize;
-  size_t bmax;
-  size_t doff;       /* offset to data beyond header */
-  MIMEHeader mh;  
+	/* Information about the data received. */
+	byte *b;
+	size_t blen;
+	size_t bsize;
+	size_t bmax;
+	size_t doff;       /* offset to data beyond header */
+	MIMEHeader mh;
 } HTTPInfo;
 
 static int uuencode _ArgProto((unsigned char *, unsigned int, char *));
 static byte *HTTPBuildRequest _ArgProto((HTTPInfo *, ssize_t *));
 static int HTTPCreateInfo _ArgProto((HTTPInfo **,
-				     ChimeraSource, ChimeraRequest *,
-				     HTTPClass *,
-				     URLParts *, URLParts *,
-				     HTTPPassword *));
+	ChimeraSource, ChimeraRequest *,
+	HTTPClass *,
+	URLParts *, URLParts *,
+	HTTPPassword *));
 static void HTTPCancel _ArgProto((void *));
 static void *HTTPInit _ArgProto((ChimeraSource, ChimeraRequest *, void *));
 static void HTTPDestroy _ArgProto((void *));
@@ -167,9 +156,9 @@ void InitModule_HTTP _ArgProto((ChimeraResources));
 static char *HTTPGetFilename _ArgProto((HTTPInfo *));
 static int HTTPCheckHeader _ArgProto((HTTPInfo **));
 HTTPPassword *HTTPFindPassword _ArgProto((HTTPInfo *, char *,
-						 char *, int));
+	char *, int));
 HTTPPassword *HTTPAddPassword _ArgProto((HTTPInfo *, char *, char *,
-						char *, char *, char *, int));
+	char *, char *, char *, int));
 static void HTTPAuthCallback _ArgProto((void *, char *, char *));
 
 /*
@@ -177,11 +166,11 @@ static void HTTPAuthCallback _ArgProto((void *, char *, char *));
  */
 static char six2pr[64] =
 {
-    'A','B','C','D','E','F','G','H','I','J','K','L','M',
-    'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-    'a','b','c','d','e','f','g','h','i','j','k','l','m',
-    'n','o','p','q','r','s','t','u','v','w','x','y','z',
-    '0','1','2','3','4','5','6','7','8','9','+','/'
+	'A','B','C','D','E','F','G','H','I','J','K','L','M',
+	'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+	'a','b','c','d','e','f','g','h','i','j','k','l','m',
+	'n','o','p','q','r','s','t','u','v','w','x','y','z',
+	'0','1','2','3','4','5','6','7','8','9','+','/'
 };
 
 /*
@@ -198,602 +187,482 @@ static char six2pr[64] =
  *      AL      Ari Luotonen    luotonen@dxcern.cern.ch
  *
  */
-static int
-uuencode(bufin, nbytes, bufcoded)
-unsigned char *bufin;
-unsigned int nbytes;
-char *bufcoded;
-{
+static int uuencode(unsigned char *bufin, unsigned int nbytes, char *bufcoded) {
   /* ENC is the basic 1 character encoding function to make a char printing */
 #define ENC(c) six2pr[c]
-  
-  register char *outptr = bufcoded;
-  unsigned int i;
-  
-  for (i=0; i<nbytes; i += 3) 
-  {
-    *(outptr++) = ENC(*bufin >> 2);            /* c1 */
-    *(outptr++) = ENC(((*bufin << 4) & 060) | ((bufin[1] >> 4) & 017)); /*c2*/
-    *(outptr++) = ENC(((bufin[1] << 2) & 074) | ((bufin[2] >> 6) & 03));/*c3*/
-    *(outptr++) = ENC(bufin[2] & 077);         /* c4 */
-    
-    bufin += 3;
-  }
-  
-  /* If nbytes was not a multiple of 3, then we have encoded too
-   * many characters.  Adjust appropriately.
-   */
-  if (i == nbytes + 1)
-  {
-    /* There were only 2 bytes in that last group */
-    outptr[-1] = '=';
-  }
-  else if (i == nbytes + 2)
-  {
-    /* There was only 1 byte in that last group */
-    outptr[-1] = '=';
-    outptr[-2] = '=';
-  }
-  *outptr = '\0';
 
-  return(outptr - bufcoded);
+	register char *outptr = bufcoded;
+	unsigned int i;
+
+	for (i = 0; i < nbytes; i += 3) {
+		*(outptr++) = ENC(*bufin >> 2);            /* c1 */
+		*(outptr++) = ENC(((*bufin << 4) & 060) | ((bufin[1] >> 4) & 017)); /*c2*/
+		*(outptr++) = ENC(((bufin[1] << 2) & 074) | ((bufin[2] >> 6) & 03));/*c3*/
+		*(outptr++) = ENC(bufin[2] & 077);         /* c4 */
+
+		bufin += 3;
+	}
+
+	/* If nbytes was not a multiple of 3, then we have encoded too
+	 * many characters.  Adjust appropriately.
+	 */
+	if (i == nbytes + 1) {
+	  /* There were only 2 bytes in that last group */
+		outptr[-1] = '=';
+	} else if (i == nbytes + 2) {
+	  /* There was only 1 byte in that last group */
+		outptr[-1] = '=';
+		outptr[-2] = '=';
+	}
+	*outptr = '\0';
+
+	return(outptr - bufcoded);
 }
 
 /*
  * HTTPAuthCallback
  */
-static void
-HTTPAuthCallback(closure, username, password)
-void *closure;
-char *username;
-char *password;
-{
-  HTTPInfo **hip = (HTTPInfo **)closure;
-  HTTPInfo *hi = *hip;
-  HTTPPassword *hp;
+static void HTTPAuthCallback(void *closure, char *username, char *password) {
+	HTTPInfo **hip = (HTTPInfo **)closure;
+	HTTPInfo *hi = *hip;
+	HTTPPassword *hp;
 
-  if (username == NULL || password == NULL)
-  {
-    HTTPCancel(hip);
-    return;
-  }
+	if (username == NULL || password == NULL) {
+		HTTPCancel(hip);
+		return;
+	}
 
-  hp = HTTPAddPassword(hi, username, password, hi->realm, hi->auth_type,
-		       hi->up->hostname, hi->up->port);
+	hp = HTTPAddPassword(hi, username, password, hi->realm, hi->auth_type,
+		hi->up->hostname, hi->up->port);
 
-  if (HTTPCreateInfo(hip, hi->ws, hi->wr, hi->hc,
-		     hi->up, hi->pup, hp) == -1)
-  {
-    HTTPFailure(hi);
-  }
-  HTTPDestroyInfo(hi);
-    
-  return;
+	if (HTTPCreateInfo(hip, hi->ws, hi->wr, hi->hc,
+		hi->up, hi->pup, hp) == -1) {
+		HTTPFailure(hi);
+	}
+	HTTPDestroyInfo(hi);
+
+	return;
 }
 
 /*
  * HTTPFindPassword
  */
-HTTPPassword *
-HTTPFindPassword(hi, realm, hostname, port)
-HTTPInfo *hi;
-char *realm;
-char *hostname;
-int port;
-{
-  HTTPPassword *hp;
+HTTPPassword *HTTPFindPassword(HTTPInfo *hi, char *realm, char *hostname, int port) {
+	HTTPPassword *hp;
 
-  port = port == 0 ? 80:port;
+	port = port == 0 ? 80 : port;
 
-  for (hp = (HTTPPassword *)GListGetHead(hi->hc->passwords); hp != NULL;
-       hp = (HTTPPassword *)GListGetNext(hi->hc->passwords))
-  {
-    if (strlen(realm) == strlen(hp->realm) &&
-	strcmp(realm, hp->realm) == 0 &&
-	strlen(hostname) == strlen(hp->hostname) &&
-	strcasecmp(hostname, hp->hostname) == 0 &&
-	port == hp->port)
-    {
-      return(hp);
-    }
-  }
+	for (hp = (HTTPPassword *)GListGetHead(hi->hc->passwords); hp != NULL;
+		hp = (HTTPPassword *)GListGetNext(hi->hc->passwords)) {
+		if (strlen(realm) == strlen(hp->realm) &&
+			strcmp(realm, hp->realm) == 0 &&
+			strlen(hostname) == strlen(hp->hostname) &&
+			strcasecmp(hostname, hp->hostname) == 0 &&
+			port == hp->port) {
+			return(hp);
+		}
+	}
 
-  return(NULL);
+	return(NULL);
 }
 
 /*
  * HTTPAddPassword
  */
-HTTPPassword *
-HTTPAddPassword(hi, username, password, realm, type, hostname, port)
-HTTPInfo *hi;
-char *username;
-char *password;
-char *realm;
-char *type;
-char *hostname;
-int port;
-{
-  HTTPPassword *hp;
-  MemPool mp;
+HTTPPassword *HTTPAddPassword(HTTPInfo *hi, char *username, char *password,
+	char *realm, char *type, char *hostname, int port) {
+	HTTPPassword *hp;
+	MemPool mp;
 
-  if (username == NULL) return(NULL);
-  if (hostname == NULL) return(NULL);
+	if (username == NULL) return(NULL);
+	if (hostname == NULL) return(NULL);
 
-  mp = hi->hc->mp;
+	mp = hi->hc->mp;
 
-  hp = (HTTPPassword *)MPCGet(mp, sizeof(HTTPPassword));
-  hp->username = MPStrDup(mp, username);
-  if (password != NULL) hp->password = MPStrDup(mp, password);
-  else hp->password = MPStrDup(mp, "");
+	hp = (HTTPPassword *)MPCGet(mp, sizeof(HTTPPassword));
+	hp->username = MPStrDup(mp, username);
+	if (password != NULL) hp->password = MPStrDup(mp, password);
+	else hp->password = MPStrDup(mp, "");
 
-  /*
-   * Probably shouldn't have defaults here.  Should just error out.
-   */
-  if (realm != NULL) hp->realm = MPStrDup(mp, realm);
-  else hp->realm = MPStrDup(mp, "");
-  if (type != NULL) hp->type = MPStrDup(mp, type);
-  else hp->type = MPStrDup(mp, "basic");
+	/*
+	 * Probably shouldn't have defaults here.  Should just error out.
+	 */
+	if (realm != NULL) hp->realm = MPStrDup(mp, realm);
+	else hp->realm = MPStrDup(mp, "");
+	if (type != NULL) hp->type = MPStrDup(mp, type);
+	else hp->type = MPStrDup(mp, "basic");
 
-  hp->hostname = MPStrDup(mp, hostname);
-  hp->port = port == 0 ? 80:port;
-  GListAddHead(hi->hc->passwords, hp);
+	hp->hostname = MPStrDup(mp, hostname);
+	hp->port = port == 0 ? 80 : port;
+	GListAddHead(hi->hc->passwords, hp);
 
-  return(hp);
+	return(hp);
 }
 
 /*
  * HTTPRequest_Auth
  */
-static byte *
-HTTPRequest_Auth(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  char *t, *line = NULL;
-  const char *authfield = "Authorization: ";
-  char *username;
-  char *password;
-  URLParts *up;
+static byte *HTTPRequest_Auth(HTTPInfo *hi, ssize_t *len) {
+	char *t, *line = NULL;
+	const char *authfield = "Authorization: ";
+	char *username;
+	char *password;
+	URLParts *up;
 
-  if (hi->hp == NULL) return(NULL);
-  if (hi->hp->type == NULL || strcasecmp(hi->hp->type, "basic") != 0)
-  {
-    return(NULL);
-  }
+	if (hi->hp == NULL) return(NULL);
+	if (hi->hp->type == NULL || strcasecmp(hi->hp->type, "basic") != 0) {
+		return(NULL);
+	}
 
-  username = hi->hp->username;
-  password = hi->hp->password;
-  up = hi->up;
+	username = hi->hp->username;
+	password = hi->hp->password;
+	up = hi->up;
 
-  line = (char *)MPGet(hi->rmp,
-                       strlen(authfield) +
-                       2 * strlen(username) + 2 * strlen(":") +
-                       2 * strlen(password != NULL ? password:"") +
-		       2 * strlen(hi->hp->type) + 
-                       strlen("\r\n") + 1);
-  strcpy(line, username);
-  if (password != NULL)
-  {
-    strcat(line, ":");
-    strcat(line, password);
-  }
+	line = (char *)MPGet(hi->rmp,
+		strlen(authfield) +
+		2 * strlen(username) + 2 * strlen(":") +
+		2 * strlen(password != NULL ? password : "") +
+		2 * strlen(hi->hp->type) +
+		strlen("\r\n") + 1);
+	strcpy(line, username);
+	if (password != NULL) {
+		strcat(line, ":");
+		strcat(line, password);
+	}
 
-  t = (char *)MPGet(hi->rmp, strlen(line) * 2);
-  uuencode(line, strlen(line), t);
+	t = (char *)MPGet(hi->rmp, strlen(line) * 2);
+	uuencode(line, strlen(line), t);
 
-  strcpy(line, authfield);
-  strcat(line, hi->hp->type);
-  strcat(line, " ");
-  strcat(line, t);
-  strcat(line, "\r\n");
+	strcpy(line, authfield);
+	strcat(line, hi->hp->type);
+	strcat(line, " ");
+	strcat(line, t);
+	strcat(line, "\r\n");
 
-  if (line != NULL) *len = strlen(line);
+	if (line != NULL) *len = strlen(line);
 
-  return((byte *)line);
+	return((byte *)line);
 }
 
 /*
  * HTTPRequest_UserAgent
  */
-static byte *
-HTTPRequest_UserAgent(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  char *ua;
-  char *line = NULL;
-  const char *uaformat = "User-agent: %s\r\n";
-  size_t linelen;
+static byte *HTTPRequest_UserAgent(HTTPInfo *hi, ssize_t *len) {
+	char *ua;
+	char *line = NULL;
+	const char *uaformat = "User-agent: %s\r\n";
+	size_t linelen;
 
-  ua = ResourceGetString(hi->cres, "http.userAgent");
-  if (ua == NULL) return(NULL);
+	ua = ResourceGetString(hi->cres, "http.userAgent");
+	if (ua == NULL) return(NULL);
 
-  linelen = strlen(uaformat) + strlen(ua) + 1;
-  line = (char *)MPGet(hi->rmp, linelen);
-  snprintf (line, linelen, uaformat, ua);
+	linelen = strlen(uaformat) + strlen(ua) + 1;
+	line = (char *)MPGet(hi->rmp, linelen);
+	snprintf(line, linelen, uaformat, ua);
 
-  if (line != NULL) *len = strlen(line);  
+	if (line != NULL) *len = strlen(line);
 
-  return((byte *)line);
+	return((byte *)line);
 }
 
 /*
  * HTTPRequest_AcceptLang
  */
-static byte *
-HTTPRequest_AcceptLang(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  char *line;
-  char *acc;
-  const char *accformat = "Accept-Language: %s\r\n";
-  size_t linelen;
+static byte *HTTPRequest_AcceptLang(HTTPInfo *hi, ssize_t *len) {
+	char *line;
+	char *acc;
+	const char *accformat = "Accept-Language: %s\r\n";
+	size_t linelen;
 
-  if ((acc = ResourceGetString(hi->cres, "http.acceptLanguage")) != NULL)
-  {
-    linelen = strlen(accformat) + strlen(acc) + 1;
-    line = (char *)MPGet(hi->rmp, linelen);
-    snprintf (line, linelen, accformat, acc);
-    *len = strlen(line);
-    return((byte *)line);
-  }
-  return(NULL);
+	if ((acc = ResourceGetString(hi->cres, "http.acceptLanguage")) != NULL) {
+		linelen = strlen(accformat) + strlen(acc) + 1;
+		line = (char *)MPGet(hi->rmp, linelen);
+		snprintf(line, linelen, accformat, acc);
+		*len = strlen(line);
+		return((byte *)line);
+	}
+	return(NULL);
 }
 
 /*
  * HTTPRequest_Accept
  */
-static byte *
-HTTPRequest_Accept(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  GList list;
-  char *nr;
-  size_t rlen;
-  size_t delimlen;
-  char *line = NULL;
-  const char *accfield = "Accept: ";
-  const char *delim = ",";
+static byte *HTTPRequest_Accept(HTTPInfo *hi, ssize_t *len) {
+	GList list;
+	char *nr;
+	size_t rlen;
+	size_t delimlen;
+	char *line = NULL;
+	const char *accfield = "Accept: ";
+	const char *delim = ",";
 
-  if (hi->wr->contents == NULL) line = "Accept: */*\r\n";
-  else
-  {
-    list = hi->wr->contents;
-    delimlen = strlen(delim);
-    rlen = 0;
-    for (nr = (char *)GListGetHead(list); nr != NULL;
-	 nr = (char *)GListGetNext(list))
-    {
-      rlen += strlen(nr) + delimlen;
-    }
-    
-    line = (char *)MPGet(hi->rmp, strlen(accfield) +
-			 rlen + strlen("\r\n") + 1);
-    strcpy(line, accfield);
-    for (nr = (char *)GListGetHead(list); nr != NULL; )
-    {
-      strcat(line, nr);
-      if ((nr = GListGetNext(list)) != NULL) strcat(line, delim);
-    }
-    strcat(line, "\r\n");
-  }
+	if (hi->wr->contents == NULL) line = "Accept: */*\r\n";
+	else {
+		list = hi->wr->contents;
+		delimlen = strlen(delim);
+		rlen = 0;
+		for (nr = (char *)GListGetHead(list); nr != NULL;
+			nr = (char *)GListGetNext(list)) {
+			rlen += strlen(nr) + delimlen;
+		}
 
-  if (line != NULL) *len = strlen(line);
+		line = (char *)MPGet(hi->rmp, strlen(accfield) +
+			rlen + strlen("\r\n") + 1);
+		strcpy(line, accfield);
+		for (nr = (char *)GListGetHead(list); nr != NULL; ) {
+			strcat(line, nr);
+			if ((nr = GListGetNext(list)) != NULL) strcat(line, delim);
+		}
+		strcat(line, "\r\n");
+	}
 
-  return((byte *)line);
+	if (line != NULL) *len = strlen(line);
+
+	return((byte *)line);
 }
 
 /*
  * HTTPRequest_Pragma
  */
-static byte *
-HTTPRequest_Pragma(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  const char *pragma = "Pragma: no-cache\r\n";
+static byte *HTTPRequest_Pragma(HTTPInfo *hi, ssize_t *len) {
+	const char *pragma = "Pragma: no-cache\r\n";
 
-  if (hi->wr->reload)
-  {
-    *len = strlen(pragma);
-    return((byte *)MPStrDup(hi->rmp, pragma));
-  }
-  return(NULL);
+	if (hi->wr->reload) {
+		*len = strlen(pragma);
+		return((byte *)MPStrDup(hi->rmp, pragma));
+	}
+	return(NULL);
 }
 
 /*
  * HTTPRequest_Method
  */
-static byte *
-HTTPRequest_Method(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  char *filename;
-  char *line = NULL;
-  ChimeraRequest *wr;
-  const char *getformat1 = "GET %s HTTP/1.0\r\n";
-  const char *getformat2 = "GET %s%s%s HTTP/1.0\r\n";
-  const char *postformat = "POST %s HTTP/1.0\r\n";
-  size_t linelen;
+static byte *HTTPRequest_Method(HTTPInfo *hi, ssize_t *len) {
+	char *filename;
+	char *line = NULL;
+	ChimeraRequest *wr;
+	const char *getformat1 = "GET %s HTTP/1.0\r\n";
+	const char *getformat2 = "GET %s%s%s HTTP/1.0\r\n";
+	const char *postformat = "POST %s HTTP/1.0\r\n";
+	size_t linelen;
 
-  filename = HTTPGetFilename(hi);
-  wr = hi->wr;
+	filename = HTTPGetFilename(hi);
+	wr = hi->wr;
 
-  if (wr->input_method == NULL || strcasecmp(wr->input_method, "GET") == 0)
-  {
-    if (wr->input_data != NULL && wr->input_len > 0)
-    {
-      linelen = strlen(getformat2) + wr->input_len + strlen(filename) +
-	  strlen("?") + 1;
-	 
-      line = (char *)MPGet(hi->rmp, linelen);
-      snprintf (line, linelen, getformat2, filename, "?", wr->input_data);
-    }
-    else
-    {
-      linelen = strlen(getformat1) + strlen(filename) + 1;
-      line = (char *)MPGet(hi->rmp, linelen);
-      snprintf (line, linelen, getformat1, filename);
-    }
-  }
-  else if (strcasecmp(wr->input_method, "POST") == 0)
-  {
-    linelen = strlen(postformat) + strlen(filename) + 1;
-    line = (char *)MPGet(hi->rmp, linelen);
-    snprintf (line, linelen, postformat, filename);
-  }
-  else
-  {
-    *len = -1;
-    return(NULL);
-  }
+	if (wr->input_method == NULL || strcasecmp(wr->input_method, "GET") == 0) {
+		if (wr->input_data != NULL && wr->input_len > 0) {
+			linelen = strlen(getformat2) + wr->input_len + strlen(filename) +
+				strlen("?") + 1;
 
-  if (line != NULL) *len = strlen(line);
+			line = (char *)MPGet(hi->rmp, linelen);
+			snprintf(line, linelen, getformat2, filename, "?", wr->input_data);
+		} else {
+			linelen = strlen(getformat1) + strlen(filename) + 1;
+			line = (char *)MPGet(hi->rmp, linelen);
+			snprintf(line, linelen, getformat1, filename);
+		}
+	} else if (strcasecmp(wr->input_method, "POST") == 0) {
+		linelen = strlen(postformat) + strlen(filename) + 1;
+		line = (char *)MPGet(hi->rmp, linelen);
+		snprintf(line, linelen, postformat, filename);
+	} else {
+		*len = -1;
+		return(NULL);
+	}
 
-  return((byte *)line);
+	if (line != NULL) *len = strlen(line);
+
+	return((byte *)line);
 }
 
 /*
  * HTTPRequest_Host
  */
-static byte *
-HTTPRequest_Host(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  char *host;
-  int port;
-  char *line;
-  size_t linelen;
+static byte *HTTPRequest_Host(HTTPInfo *hi, ssize_t *len) {
+	char *host;
+	int port;
+	char *line;
+	size_t linelen;
 
-  host = hi->up->hostname;
-  port = hi->up->port;
+	host = hi->up->hostname;
+	port = hi->up->port;
 
-  linelen = strlen(host) + strlen("Host:") + 50;
-  line = (char *)MPCGet(hi->rmp, linelen);
-  if (port == 0) snprintf (line, linelen, "Host: %s\r\n", host);
-  else snprintf (line, linelen, "Host: %s:%d\r\n", host, port);
+	linelen = strlen(host) + strlen("Host:") + 50;
+	line = (char *)MPCGet(hi->rmp, linelen);
+	if (port == 0) snprintf(line, linelen, "Host: %s\r\n", host);
+	else snprintf(line, linelen, "Host: %s:%d\r\n", host, port);
 
-  if (line != NULL) *len = strlen(line);
+	if (line != NULL) *len = strlen(line);
 
-  return((byte *)line);
+	return((byte *)line);
 }
 
 /*
  * HTTPRequest_Data1
  */
-static byte *
-HTTPRequest_Data1(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  char *line = NULL;
-  const char *format = "Content-type: %s\r\nContent-length: %d\r\n";
-  ChimeraRequest *wr = hi->wr;
-  size_t linelen;
+static byte *HTTPRequest_Data1(HTTPInfo *hi, ssize_t *len) {
+	char *line = NULL;
+	const char *format = "Content-type: %s\r\nContent-length: %d\r\n";
+	ChimeraRequest *wr = hi->wr;
+	size_t linelen;
 
-  if (wr->input_method == NULL ||
-      strcasecmp(wr->input_method, "POST") != 0)
-  {
-    return(NULL);
-  }
+	if (wr->input_method == NULL ||
+		strcasecmp(wr->input_method, "POST") != 0) {
+		return(NULL);
+	}
 
-  if (wr->input_data != NULL && wr->input_len > 0 &&
-      wr->input_type != NULL)
-  {
-    linelen = strlen(format) + strlen(wr->input_type) + 101;
-    line = (char *)MPGet(hi->rmp, linelen);
-    snprintf (line, linelen, format, wr->input_type, wr->input_len);
-  }
+	if (wr->input_data != NULL && wr->input_len > 0 &&
+		wr->input_type != NULL) {
+		linelen = strlen(format) + strlen(wr->input_type) + 101;
+		line = (char *)MPGet(hi->rmp, linelen);
+		snprintf(line, linelen, format, wr->input_type, wr->input_len);
+	}
 
-  if (line != NULL) *len = strlen(line);
+	if (line != NULL) *len = strlen(line);
 
-  return((byte *)line);
+	return((byte *)line);
 }
 
 /*
  * HTTPRequest_Data2
  */
-static byte *
-HTTPRequest_Data2(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  ChimeraRequest *wr = hi->wr;
+static byte *HTTPRequest_Data2(HTTPInfo *hi, ssize_t *len) {
+	ChimeraRequest *wr = hi->wr;
 
-  if (wr->input_method == NULL ||
-      strcasecmp(wr->input_method, "POST") != 0)
-  {
-    return(NULL);
-  }
+	if (wr->input_method == NULL ||
+		strcasecmp(wr->input_method, "POST") != 0) {
+		return(NULL);
+	}
 
-  if (wr->input_data != NULL && wr->input_len > 0 &&
-      wr->input_type != NULL)
-  {
-    *len = wr->input_len;
-    return(wr->input_data);
-  }
+	if (wr->input_data != NULL && wr->input_len > 0 &&
+		wr->input_type != NULL) {
+		*len = wr->input_len;
+		return(wr->input_data);
+	}
 
-  return(NULL);
+	return(NULL);
 }
 
-/* 
+/*
  * HTTPBuildRequest
  *
  * This became less efficient but easier to hack, I think.
  */
-static byte *
-HTTPBuildRequest(hi, len)
-HTTPInfo *hi;
-ssize_t *len;
-{
-  byte *line = NULL;
+static byte *HTTPBuildRequest(HTTPInfo *hi, ssize_t *len) {
+	byte *line = NULL;
 
-  do
-  {
-    *len = 0;
-    if (hi->nline == 0) line = HTTPRequest_Method(hi, len);
-    else if (hi->nline == 1) line = HTTPRequest_Host(hi, len);
-    else if (hi->nline == 2) line = HTTPRequest_UserAgent(hi, len);
-    else if (hi->nline == 3) line = HTTPRequest_Accept(hi, len);
-    else if (hi->nline == 4) line = HTTPRequest_AcceptLang(hi, len);
-    else if (hi->nline == 5) line = HTTPRequest_Pragma(hi, len);
-    else if (hi->nline == 6) line = HTTPRequest_Auth(hi, len);
-    /* this must be last */
-    else if (hi->nline == 7) line = HTTPRequest_Data1(hi, len);
-    else if (hi->nline == 8)
-    {
-      *len = strlen("\r\n");
-      line = (byte *)MPStrDup(hi->rmp, "\r\n");
-    }
-    else if (hi->nline == 9) line = HTTPRequest_Data2(hi, len);
-    else break;
-    hi->nline++;
-  } while (line == NULL && *len != -1);
+	do {
+		*len = 0;
+		if (hi->nline == 0) line = HTTPRequest_Method(hi, len);
+		else if (hi->nline == 1) line = HTTPRequest_Host(hi, len);
+		else if (hi->nline == 2) line = HTTPRequest_UserAgent(hi, len);
+		else if (hi->nline == 3) line = HTTPRequest_Accept(hi, len);
+		else if (hi->nline == 4) line = HTTPRequest_AcceptLang(hi, len);
+		else if (hi->nline == 5) line = HTTPRequest_Pragma(hi, len);
+		else if (hi->nline == 6) line = HTTPRequest_Auth(hi, len);
+		/* this must be last */
+		else if (hi->nline == 7) line = HTTPRequest_Data1(hi, len);
+		else if (hi->nline == 8) {
+			*len = strlen("\r\n");
+			line = (byte *)MPStrDup(hi->rmp, "\r\n");
+		} else if (hi->nline == 9) line = HTTPRequest_Data2(hi, len);
+		else break;
+		hi->nline++;
+	} while (line == NULL && *len != -1);
 
-  return(line);
+	return(line);
 }
 
 /*
  * HTTPFailure
  */
-static void
-HTTPFailure(hi)
-HTTPInfo *hi;
-{
-  HTTPCancel(&hi);
-  SourceStop(hi->ws, "Read error during HTTP transfer");
-  return;
+static void HTTPFailure(HTTPInfo *hi) {
+	HTTPCancel(&hi);
+	SourceStop(hi->ws, "Read error during HTTP transfer");
+	return;
 }
 
 /*
  * HTTPGetFilename
  */
-static char *
-HTTPGetFilename(hi)
-HTTPInfo *hi;
-{
-  char *filename;
+static char *HTTPGetFilename(HTTPInfo *hi) {
+	char *filename;
 
-  /*
-   * If there is a proxy URL supplied then get the entire URL and not just
-   * just the filename part.  If there is no proxy then just use the
-   * filename part.
-   */
-  if (hi->pup != NULL) filename = URLMakeString(hi->mp, hi->up, false);
-  else filename = hi->up->filename;
-  if (filename == NULL) filename = "/";
+	/*
+	 * If there is a proxy URL supplied then get the entire URL and not just
+	 * just the filename part.  If there is no proxy then just use the
+	 * filename part.
+	 */
+	if (hi->pup != NULL) filename = URLMakeString(hi->mp, hi->up, false);
+	else filename = hi->up->filename;
+	if (filename == NULL) filename = "/";
 
-  return(filename);
+	return(filename);
 }
 
 /*
  * HTTPRead
  */
-static void
-HTTPRead(hip, func)
-HTTPInfo **hip;
-ChimeraStreamCallback func;
-{
-  size_t rsize;
-  HTTPInfo *hi = *hip;
+static void HTTPRead(HTTPInfo **hip, ChimeraStreamCallback func) {
+	size_t rsize;
+	HTTPInfo *hi = *hip;
 
-  if (hi->bmax > 0)
-  {
-    rsize = hi->bmax - hi->blen;
-    if (rsize > CHUNKSIZE) rsize = CHUNKSIZE;
-  }
-  else rsize = CHUNKSIZE;
+	if (hi->bmax > 0) {
+		rsize = hi->bmax - hi->blen;
+		if (rsize > CHUNKSIZE) rsize = CHUNKSIZE;
+	} else rsize = CHUNKSIZE;
 
-  if (hi->bmax == 0 || ((hi->bsize - hi->blen) < rsize))
-  {
-    if (hi->b == NULL) hi->b = (byte *)alloc_mem(rsize);
-    else hi->b = (byte *)realloc_mem(hi->b, hi->bsize + rsize);
-    hi->bsize += rsize;
-  }
-  StreamRead(hi->ios, hi->b + hi->blen, rsize, func, hip);
-  return;
+	if (hi->bmax == 0 || ((hi->bsize - hi->blen) < rsize)) {
+		if (hi->b == NULL) hi->b = (byte *)malloc(rsize);
+		else hi->b = (byte *)realloc(hi->b, hi->bsize + rsize);
+		hi->bsize += rsize;
+	}
+	StreamRead(hi->ios, hi->b + hi->blen, rsize, func, hip);
+	return;
 }
 
 /*
  * HTTPReadData
  */
-static void
-HTTPReadData(ios, len, closure)
-ChimeraStream ios;
-ssize_t len;
-void *closure;
-{
-  HTTPInfo **hip = (HTTPInfo **)closure;
-  HTTPInfo *hi = *hip;
-  long rnum;
-  char *rmsg;
-  
-  if (len < 0)
-  {
-    HTTPFailure(hi);
-    return;
-  }
-  
-  if (len > 0) hi->blen += len;
-  
-  if (len == 0 || ((hi->blen - hi->doff) == hi->bmax && hi->bmax > 0))
-  {
-    SourceSendMessage(hi->ws, hi->hc->msg[HM_DONE]);
-    SourceEnd(hi->ws);
-  }
-  else
-  {
-    /*
-     * Don't want to return data until we know the final size...realloc()
-     * causes trouble.
-     */
-    if (hi->bmax > 0)
-    {
-      if (hi->blen - hi->doff > 0) SourceAdd(hi->ws);
-      rmsg = hi->hc->msg[HM_RK];
-      rnum = (long)(hi->bmax - hi->blen - hi->doff);
-    }
-    else
-    {
-      rmsg = hi->hc->msg[HM_RU];
-      rnum = (long)(hi->blen - hi->doff);
-    }
-    
-    if (hi->rcount++ % PRINT_RATE == 0)
-    {
-      snprintf (hi->msgbuf, sizeof(hi->msgbuf), "%ld %s", rnum, rmsg);
-      SourceSendMessage(hi->ws, hi->msgbuf);
-    }
-    
-    HTTPRead(hip, HTTPReadData);
-  }
-  
-  return;
+static void HTTPReadData(ChimeraStream ios, ssize_t len, void *closure) {
+	HTTPInfo **hip = (HTTPInfo **)closure;
+	HTTPInfo *hi = *hip;
+	long rnum;
+	char *rmsg;
+
+	if (len < 0) {
+		HTTPFailure(hi);
+		return;
+	}
+
+	if (len > 0) hi->blen += len;
+
+	if (len == 0 || ((hi->blen - hi->doff) == hi->bmax && hi->bmax > 0)) {
+		SourceSendMessage(hi->ws, hi->hc->msg[HM_DONE]);
+		SourceEnd(hi->ws);
+	} else {
+	  /*
+	   * Don't want to return data until we know the final size...realloc()
+	   * causes trouble.
+	   */
+		if (hi->bmax > 0) {
+			if (hi->blen - hi->doff > 0) SourceAdd(hi->ws);
+			rmsg = hi->hc->msg[HM_RK];
+			rnum = (long)(hi->bmax - hi->blen - hi->doff);
+		} else {
+			rmsg = hi->hc->msg[HM_RU];
+			rnum = (long)(hi->blen - hi->doff);
+		}
+
+		if (hi->rcount++ % PRINT_RATE == 0) {
+			snprintf(hi->msgbuf, sizeof(hi->msgbuf), "%ld %s", rnum, rmsg);
+			SourceSendMessage(hi->ws, hi->msgbuf);
+		}
+
+		HTTPRead(hip, HTTPReadData);
+	}
+
+	return;
 }
 
 /*
@@ -802,427 +671,342 @@ void *closure;
  * Scrounges around in the header fields to see if there is any
  * interesting information.
  */
-static int
-HTTPCheckHeader(hip)
-HTTPInfo **hip;
-{
-  char *value;
-  size_t clen;
-  char *option;
-  char *list;
-  URLParts *up, *pup;
-  char *url;
-  char *username;
-  char *cp;
-  bool cache;
-  HTTPInfo *hi = *hip;
+static int HTTPCheckHeader(HTTPInfo **hip) {
+	char *value;
+	size_t clen;
+	char *option;
+	char *list;
+	URLParts *up, *pup;
+	char *url;
+	char *username;
+	char *cp;
+	bool cache;
+	HTTPInfo *hi = *hip;
 
-  if (hi->status >= 300) cache = false;
-  else cache = true;
-
-  /*
-   * Take action on MIME fields.
-   */
-  if ((MIMEGetField(hi->mh, "location", &value) == 0 && value != NULL) &&
-      hi->status >= 300 && hi->status < 400)
-  {
-    up = URLParse(hi->mp, value);
-    pup = NULL;
-
-    /* Just blindly follow the URL unless it should be used as a proxy */
-    if (hi->status != 305) up = URLResolve(hi->mp, up, hi->up);
-    else
-    {
-      pup = up;
-      up = hi->up;
-    }
- 
-    if (HTTPCreateInfo(hip, hi->ws, hi->wr, hi->hc,
-		       up, pup, hi->hp) == -1)
-    {
-      HTTPFailure(hi);
-    }
-    HTTPDestroyInfo(hi);
-    
-    return(-1);
-  }
-  if (MIMEGetField(hi->mh, "content-length", &value) == 0 && value != NULL)
-  {
-    clen = (size_t)atoi(value) + hi->doff;
-    if (clen > 0 && clen > hi->blen && clen > hi->bsize)
-    {
-      hi->b = (byte *)realloc_mem(hi->b, clen);
-      hi->bsize = clen;
-      hi->bmax = clen;
-    }
-    else hi->bmax = 0;
-  }
-  if (MIMEGetField(hi->mh, "pragma", &value) == 0 && value != NULL)
-  {
-    list = value;
-    while ((option = mystrtok(list, ' ', &list)) != NULL)
-    {
-      if (strcasecmp(option, "no-cache") == 0) cache = false;
-    }
-  }
-  if (MIMEGetField(hi->mh, "www-authenticate", &value) == 0 &&
-      value != NULL && hi->hp == NULL)
-  {
-    cache = false;
-    
-    /*
-     * Look for the authorization type and realm
-     */
-    list = value;
-    while ((option = mystrtok(list, ' ', &list)) != NULL)
-    {
-      if (strcasecmp(option, "basic") == 0)
-      {
-	hi->auth_type = MPStrDup(hi->mp, option);
-      }
-      else if (strncasecmp(option, "realm=", 6) == 0)
-      {
-	for (cp = option; *cp != '\0'; cp++)
-	{
-	  if (*cp == '=')
-	  {
-	    hi->realm = MPStrDup(hi->mp, cp + 1);
-	    break;
-	  }
-	}
-      }
-    }
-    
-    /*
-     * If there is an authorization type and realm then try to
-     * see if the password is already known.  If not then ask the user
-     * for a username and password.
-     */
-    if (hi->auth_type != NULL && hi->realm != NULL)
-    {
-      if ((hi->hp = HTTPFindPassword(hi, hi->realm,
-				     hi->up->hostname,
-				     hi->up->port)) != NULL)
-      {
-	if (HTTPCreateInfo(hip, hi->ws, hi->wr, hi->hc,
-			   hi->up, hi->pup, hi->hp) == -1)
-	{
-	  HTTPFailure(hi);
-	}
-	HTTPDestroyInfo(hi);
-	return(-1);
-      }
-      else
-      {
-	if (hi->up->username != NULL)
-	{
-	  if (hi->up->password != NULL)
-	  {
-	    HTTPAuthCallback(hip, hi->up->username,
-			     hi->up->password);
-	  }
-	  else username = hi->up->username;
-	}
-	else username = "";
-	
-	hi->wa = AuthCreate(hi->cres, "Enter password", username,
-			    HTTPAuthCallback, hip);
+	if (hi->status >= 300) cache = false;
+	else cache = true;
 
 	/*
-	 * If the authorization context is created then return -1 to
-	 * indicate that is the end of the transaction.  If the context
-	 * is not created then pass through so the auth message will
-	 * appear.
+	 * Take action on MIME fields.
 	 */
-	if (hi->wa != NULL) return(-1);
-      }
-    }
-  }
-  
-  if (MIMEGetField(hi->mh, "content-type", &value) != 0 || value == NULL)
-  {
-    if ((value = ChimeraExt2Content(hi->cres, HTTPGetFilename(hi))) == NULL)
-    {
-      value = "text/html";
-    }
-    MIMEAddField(hi->mh, "content-type", value);
-  }
-  
-  if (hi->url != NULL) url = hi->url;
-  else url = "unknown:/";
+	if ((MIMEGetField(hi->mh, "location", &value) == 0 && value != NULL) &&
+		hi->status >= 300 && hi->status < 400) {
+		up = URLParse(hi->mp, value);
+		pup = NULL;
 
-  MIMEAddField(hi->mh, "x-url", url);
-  
-  /* Do not call this before dealing with "Location:" */
-  SourceInit(hi->ws, cache && hi->hp == NULL);
-  
-  return(0);
+		/* Just blindly follow the URL unless it should be used as a proxy */
+		if (hi->status != 305) up = URLResolve(hi->mp, up, hi->up);
+		else {
+			pup = up;
+			up = hi->up;
+		}
+
+		if (HTTPCreateInfo(hip, hi->ws, hi->wr, hi->hc,
+			up, pup, hi->hp) == -1) {
+			HTTPFailure(hi);
+		}
+		HTTPDestroyInfo(hi);
+
+		return(-1);
+	}
+	if (MIMEGetField(hi->mh, "content-length", &value) == 0 && value != NULL) {
+		clen = (size_t)atoi(value) + hi->doff;
+		if (clen > 0 && clen > hi->blen && clen > hi->bsize) {
+			hi->b = (byte *)realloc(hi->b, clen);
+			hi->bsize = clen;
+			hi->bmax = clen;
+		} else hi->bmax = 0;
+	}
+	if (MIMEGetField(hi->mh, "pragma", &value) == 0 && value != NULL) {
+		list = value;
+		while ((option = mystrtok(list, ' ', &list)) != NULL) {
+			if (strcasecmp(option, "no-cache") == 0) cache = false;
+		}
+	}
+	if (MIMEGetField(hi->mh, "www-authenticate", &value) == 0 &&
+		value != NULL && hi->hp == NULL) {
+		cache = false;
+
+		/*
+		 * Look for the authorization type and realm
+		 */
+		list = value;
+		while ((option = mystrtok(list, ' ', &list)) != NULL) {
+			if (strcasecmp(option, "basic") == 0) {
+				hi->auth_type = MPStrDup(hi->mp, option);
+			} else if (strncasecmp(option, "realm=", 6) == 0) {
+				for (cp = option; *cp != '\0'; cp++) {
+					if (*cp == '=') {
+						hi->realm = MPStrDup(hi->mp, cp + 1);
+						break;
+					}
+				}
+			}
+		}
+
+		/*
+		 * If there is an authorization type and realm then try to
+		 * see if the password is already known.  If not then ask the user
+		 * for a username and password.
+		 */
+		if (hi->auth_type != NULL && hi->realm != NULL) {
+			if ((hi->hp = HTTPFindPassword(hi, hi->realm,
+				hi->up->hostname,
+				hi->up->port)) != NULL) {
+				if (HTTPCreateInfo(hip, hi->ws, hi->wr, hi->hc,
+					hi->up, hi->pup, hi->hp) == -1) {
+					HTTPFailure(hi);
+				}
+				HTTPDestroyInfo(hi);
+				return(-1);
+			} else {
+				if (hi->up->username != NULL) {
+					if (hi->up->password != NULL) {
+						HTTPAuthCallback(hip, hi->up->username,
+							hi->up->password);
+					} else username = hi->up->username;
+				} else username = "";
+
+				hi->wa = AuthCreate(hi->cres, "Enter password", username,
+					HTTPAuthCallback, hip);
+
+		/*
+		 * If the authorization context is created then return -1 to
+		 * indicate that is the end of the transaction.  If the context
+		 * is not created then pass through so the auth message will
+		 * appear.
+		 */
+				if (hi->wa != NULL) return(-1);
+			}
+		}
+	}
+
+	if (MIMEGetField(hi->mh, "content-type", &value) != 0 || value == NULL) {
+		if ((value = ChimeraExt2Content(hi->cres, HTTPGetFilename(hi))) == NULL) {
+			value = "text/html";
+		}
+		MIMEAddField(hi->mh, "content-type", value);
+	}
+
+	if (hi->url != NULL) url = hi->url;
+	else url = "unknown:/";
+
+	MIMEAddField(hi->mh, "x-url", url);
+
+	/* Do not call this before dealing with "Location:" */
+	SourceInit(hi->ws, cache && hi->hp == NULL);
+
+	return(0);
 }
 
 /*
  * HTTPReadHeader
  */
-void
-HTTPReadHeader(ios, len, closure)
-ChimeraStream ios;
-ssize_t len;
-void *closure;
-{
-  HTTPInfo **hip = (HTTPInfo **)closure;
-  HTTPInfo *hi = *hip;
-  char *cp;
-  ssize_t i;
-  size_t moff = 0;
+void HTTPReadHeader(ChimeraStream ios, ssize_t len, void *closure) {
+	HTTPInfo **hip = (HTTPInfo **)closure;
+	HTTPInfo *hi = *hip;
+	char *cp;
+	ssize_t i;
+	size_t moff = 0;
 
-  if (len <= 0)
-  {
-    HTTPFailure(hi);
-    return;
-  }
+	if (len <= 0) {
+		HTTPFailure(hi);
+		return;
+	}
 
-  if (MIMEFindData(hi->mh, hi->b, hi->blen + len, &(hi->doff)) == 0)
-  {
-    /*
-     * Look for the end of the first line.
-     */
-    for (i = 0, cp = (char *)hi->b; i < hi->doff; i++, cp++)
-    {
-      if (*cp == '\n')
-      {
-	moff = i + 1;
-	break;
-      }
-    }
+	if (MIMEFindData(hi->mh, hi->b, hi->blen + len, &(hi->doff)) == 0) {
+	  /*
+	   * Look for the end of the first line.
+	   */
+		for (i = 0, cp = (char *)hi->b; i < hi->doff; i++, cp++) {
+			if (*cp == '\n') {
+				moff = i + 1;
+				break;
+			}
+		}
 
-    myassert(i < hi->doff, "MIMEFindData must be broken");
+		myassert(i < hi->doff, "MIMEFindData must be broken");
 
-    if (sscanf((char *)hi->b, "HTTP/%d.%d %d",
-	       &hi->major, &hi->minor, &hi->status) != 3)
-    {
-      HTTPFailure(hi);
-      return;
-    }
+		if (sscanf((char *)hi->b, "HTTP/%d.%d %d",
+			&hi->major, &hi->minor, &hi->status) != 3) {
+			HTTPFailure(hi);
+			return;
+		}
 
-    MIMEParseBuffer(hi->mh, hi->b + moff, hi->doff - moff);
+		MIMEParseBuffer(hi->mh, hi->b + moff, hi->doff - moff);
 
-    if (HTTPCheckHeader(hip) == -1) return;
+		if (HTTPCheckHeader(hip) == -1) return;
 
-    HTTPReadData(ios, len, closure);
-  }
-  else
-  {
-    snprintf (hi->msgbuf, sizeof(hi->msgbuf),
-	      "%ld %s", (long)hi->blen, hi->hc->msg[HM_RU]);
-    SourceSendMessage(hi->ws, hi->msgbuf);
+		HTTPReadData(ios, len, closure);
+	} else {
+		snprintf(hi->msgbuf, sizeof(hi->msgbuf),
+			"%ld %s", (long)hi->blen, hi->hc->msg[HM_RU]);
+		SourceSendMessage(hi->ws, hi->msgbuf);
 
-    hi->blen += len;
+		hi->blen += len;
 
-    HTTPRead(hip, HTTPReadHeader);
-  }
+		HTTPRead(hip, HTTPReadHeader);
+	}
 
-  return;
+	return;
 }
 
 /*
  * HTTPReadUnknown
  */
-static void
-HTTPReadUnknown(ios, len, closure)
-ChimeraStream ios;
-ssize_t len;
-void *closure;
-{
-  HTTPInfo **hip = (HTTPInfo **)closure;
-  HTTPInfo *hi = *hip;
-  char *content;
-  size_t nblen;
+static void HTTPReadUnknown(ChimeraStream ios, ssize_t len, void *closure) {
+	HTTPInfo **hip = (HTTPInfo **)closure;
+	HTTPInfo *hi = *hip;
+	char *content;
+	size_t nblen;
 
-  if (len < 0 || (len == 0 && hi->blen == 0))
-  {
-    HTTPFailure(hi);
-    return;
-  }
+	if (len < 0 || (len == 0 && hi->blen == 0)) {
+		HTTPFailure(hi);
+		return;
+	}
 
-  nblen = hi->blen + len;
+	nblen = hi->blen + len;
 
-  if (nblen < 5 && len > 0)
-  {
-    hi->blen = nblen;
+	if (nblen < 5 && len > 0) {
+		hi->blen = nblen;
 
-    /* Not enough information to know the HTTP version */
-    HTTPRead(hip, HTTPReadUnknown);
-  }
-  else if (nblen >= 5 && strncmp("HTTP/", (char *)hi->b, 5) == 0)
-  {
-    HTTPReadHeader(ios, len, hip);
-  }
-  else
-  {
-    /* Must be HTTP/0.9 */
-    if ((content = ChimeraExt2Content(hi->cres, HTTPGetFilename(hi))) == NULL)
-    {
-      content = "text/html";
-    }
+		/* Not enough information to know the HTTP version */
+		HTTPRead(hip, HTTPReadUnknown);
+	} else if (nblen >= 5 && strncmp("HTTP/", (char *)hi->b, 5) == 0) {
+		HTTPReadHeader(ios, len, hip);
+	} else {
+	  /* Must be HTTP/0.9 */
+		if ((content = ChimeraExt2Content(hi->cres, HTTPGetFilename(hi))) == NULL) {
+			content = "text/html";
+		}
 
-    MIMEAddField(hi->mh, "content-type", content);
-    MIMEAddField(hi->mh, "x-url", hi->url);
+		MIMEAddField(hi->mh, "content-type", content);
+		MIMEAddField(hi->mh, "x-url", hi->url);
 
-    SourceInit(hi->ws, true);
+		SourceInit(hi->ws, true);
 
-    HTTPReadData(ios, len, hip);
-  }
+		HTTPReadData(ios, len, hip);
+	}
 
-  snprintf (hi->msgbuf, sizeof(hi->msgbuf),
-	    "%ld %s", (long)hi->blen, hi->hc->msg[HM_RU]);
-  SourceSendMessage(hi->ws, hi->msgbuf);
+	snprintf(hi->msgbuf, sizeof(hi->msgbuf),
+		"%ld %s", (long)hi->blen, hi->hc->msg[HM_RU]);
+	SourceSendMessage(hi->ws, hi->msgbuf);
 
-  return;
+	return;
 }
 
 /*
  * HTTPRequestDone
  */
-static void
-HTTPRequestDone(ios, rval, closure)
-ChimeraStream ios;
-ssize_t rval;
-void *closure;
-{
-  byte *rdata;
-  ssize_t rlen;
-  HTTPInfo **hip = (HTTPInfo **)closure;
-  HTTPInfo *hi = *hip;
+static void HTTPRequestDone(ChimeraStream ios, ssize_t rval, void *closure) {
+	byte *rdata;
+	ssize_t rlen;
+	HTTPInfo **hip = (HTTPInfo **)closure;
+	HTTPInfo *hi = *hip;
 
-  if (rval == -1)
-  {
-    HTTPFailure(hi);
-    return;
-  }
+	if (rval == -1) {
+		HTTPFailure(hi);
+		return;
+	}
 
-  if ((rdata = HTTPBuildRequest(hi, &rlen)) == NULL)
-  {
-    if (rlen == -1) HTTPFailure(hi);
-    else HTTPRead(hip, HTTPReadUnknown);
-  }
-  else
-  {
-    StreamWrite(hi->ios, rdata, rlen, HTTPRequestDone, hip);
-  }
+	if ((rdata = HTTPBuildRequest(hi, &rlen)) == NULL) {
+		if (rlen == -1) HTTPFailure(hi);
+		else HTTPRead(hip, HTTPReadUnknown);
+	} else {
+		StreamWrite(hi->ios, rdata, rlen, HTTPRequestDone, hip);
+	}
 
-  return;
+	return;
 }
 
 /*
  * HTTPDestroy
  */
-static void
-HTTPDestroy(closure)
-void *closure;
-{
-  HTTPInfo **hip = (HTTPInfo **)closure;
+static void HTTPDestroy(void *closure) {
+	HTTPInfo **hip = (HTTPInfo **)closure;
 
-  HTTPDestroyInfo(*hip);
-  free_mem(hip);
+	HTTPDestroyInfo(*hip);
+	free(hip);
 
-  return;
+	return;
 }
 
 /*
  * HTTPDestroyInfo
  */
-static void
-HTTPDestroyInfo(hi)
-HTTPInfo *hi;
-{
-  HTTPCancel(&hi);
-  if (hi->rmp != NULL) MPDestroy(hi->rmp);
-  if (hi->b != NULL) free_mem(hi->b);
-  if (hi->mh != NULL) MIMEDestroyHeader(hi->mh);
-  MPDestroy(hi->mp);
+static void HTTPDestroyInfo(HTTPInfo *hi) {
+	HTTPCancel(&hi);
+	if (hi->rmp != NULL) MPDestroy(hi->rmp);
+	if (hi->b != NULL) free(hi->b);
+	if (hi->mh != NULL) MIMEDestroyHeader(hi->mh);
+	MPDestroy(hi->mp);
 
-  return;
+	return;
 }
 
 /*
  * HTTPCreateInfo
  */
-static int
-HTTPCreateInfo(hip, ws, wr, hc, up, pup, hp)
-HTTPInfo **hip;
-ChimeraSource ws;
-ChimeraRequest *wr;
-HTTPClass *hc;
-URLParts *up, *pup;
-HTTPPassword *hp;
-{
-  char *hostname;
-  int port;
-  HTTPInfo *hi;
-  MemPool mp;
+static int HTTPCreateInfo(HTTPInfo **hip, ChimeraSource ws, ChimeraRequest *wr,
+	HTTPClass *hc, URLParts *up, URLParts *pup, HTTPPassword *hp) {
+	char *hostname;
+	int port;
+	HTTPInfo *hi;
+	MemPool mp;
 
-  mp = MPCreate();
-  *hip = hi = (HTTPInfo *)MPCGet(mp, sizeof(HTTPInfo));
-  hi->mp = mp;
-  hi->hp = hp;
-  hi->rmp = MPCreate();
-  hi->ws = ws;
-  hi->wr = wr;
-  hi->cres = SourceToResources(ws);
-  hi->hc = hc;
-  hi->mh = MIMECreateHeader();
-  hi->up = URLDup(mp, up);
-  hi->url = URLMakeString(hi->mp, hi->up, true);
-  if (pup != NULL) hi->pup = URLDup(mp, pup);
-  else hi->pup = NULL;
+	mp = MPCreate();
+	*hip = hi = (HTTPInfo *)MPCGet(mp, sizeof(HTTPInfo));
+	hi->mp = mp;
+	hi->hp = hp;
+	hi->rmp = MPCreate();
+	hi->ws = ws;
+	hi->wr = wr;
+	hi->cres = SourceToResources(ws);
+	hi->hc = hc;
+	hi->mh = MIMECreateHeader();
+	hi->up = URLDup(mp, up);
+	hi->url = URLMakeString(hi->mp, hi->up, true);
+	if (pup != NULL) hi->pup = URLDup(mp, pup);
+	else hi->pup = NULL;
 
-  if (hi->pup != NULL)
-  {
-    hostname = pup->hostname;
-    port = pup->port;
-  }
-  else
-  {
-    hostname = up->hostname;
-    port = up->port;
-  }
+	if (hi->pup != NULL) {
+		hostname = pup->hostname;
+		port = pup->port;
+	} else {
+		hostname = up->hostname;
+		port = up->port;
+	}
 
-  snprintf (hi->msgbuf, sizeof(hi->msgbuf),
-	    "%s %s", hc->msg[HM_OPEN], hostname);
-  SourceSendMessage(hi->ws, hi->msgbuf);
+	snprintf(hi->msgbuf, sizeof(hi->msgbuf),
+		"%s %s", hc->msg[HM_OPEN], hostname);
+	SourceSendMessage(hi->ws, hi->msgbuf);
 
-  hi->ios = StreamCreateINet(hi->cres, hostname, port == 0 ? 80:port);
-  if (hi->ios == NULL)
-  {
-    HTTPDestroyInfo(hi);
-    return(-1);
-  }
+	hi->ios = StreamCreateINet(hi->cres, hostname, port == 0 ? 80 : port);
+	if (hi->ios == NULL) {
+		HTTPDestroyInfo(hi);
+		return(-1);
+	}
 
-  HTTPRequestDone(hi->ios, 0, (void *)hip);
+	HTTPRequestDone(hi->ios, 0, (void *)hip);
 
-  return(0);
+	return(0);
 }
 
 /*
  * HTTPInit
  */
-static void *
-HTTPInit(ws, wr, class_closure)
-ChimeraSource ws;
-ChimeraRequest *wr;
-void *class_closure;
-{
-  HTTPClass *hc = (HTTPClass *)class_closure;
-  HTTPInfo **hip;
+static void *HTTPInit(ChimeraSource ws, ChimeraRequest *wr, void *class_closure) {
+	HTTPClass *hc = (HTTPClass *)class_closure;
+	HTTPInfo **hip;
 
-  hip = (HTTPInfo **)alloc_mem(sizeof(HTTPInfo **));
+	hip = (HTTPInfo **)malloc(sizeof(HTTPInfo **));
 
-  if (HTTPCreateInfo(hip, ws, wr, hc, wr->up, wr->pup, NULL) == -1)
-  {
-    free_mem(hip);
-    return(NULL);
-  }
+	if (HTTPCreateInfo(hip, ws, wr, hc, wr->up, wr->pup, NULL) == -1) {
+		free(hip);
+		return(NULL);
+	}
 
-  return(hip);
+	return(hip);
 }
 
 /*
@@ -1232,96 +1016,77 @@ void *class_closure;
  * could cause a connection to get messed up or at least a pain to
  * figure out.
  */
-void
-HTTPCancel(closure)
-void *closure;
-{
-  HTTPInfo *hi = *((HTTPInfo **)closure);
+void HTTPCancel(void *closure) {
+	HTTPInfo *hi = *((HTTPInfo **)closure);
 
-  if (hi->wa != NULL)
-  {
-    AuthDestroy(hi->wa);
-    hi->wa = NULL;
-  }
+	if (hi->wa != NULL) {
+		AuthDestroy(hi->wa);
+		hi->wa = NULL;
+	}
 
-  if (hi->ios != NULL)
-  {
-    StreamDestroy(hi->ios);
-    hi->ios = NULL;
-  }
-  
-  return;
+	if (hi->ios != NULL) {
+		StreamDestroy(hi->ios);
+		hi->ios = NULL;
+	}
+
+	return;
 }
 
 /*
  * HTTPClassDestroy
  */
-static void
-HTTPClassDestroy(closure)
-void *closure;
-{
-  HTTPClass *hc = (HTTPClass *)closure;
-  MPDestroy(hc->mp);
-  return;
+static void HTTPClassDestroy(void *closure) {
+	HTTPClass *hc = (HTTPClass *)closure;
+	MPDestroy(hc->mp);
+	return;
 }
 
 /*
  * HTTPGetData
  */
-static void
-HTTPGetData(closure, data, len, mh)
-void *closure;
-byte **data;
-size_t *len;
-MIMEHeader *mh;
-{
-  HTTPInfo *hi = *((HTTPInfo **)closure);
+static void HTTPGetData(void *closure, byte **data, size_t *len, MIMEHeader *mh) {
+	HTTPInfo *hi = *((HTTPInfo **)closure);
 
-  *data = hi->b + hi->doff;
-  *len = hi->blen - hi->doff;
-  *mh = hi->mh;
+	*data = hi->b + hi->doff;
+	*len = hi->blen - hi->doff;
+	*mh = hi->mh;
 
-  return;
+	return;
 }
 
 
 /*
  * InitModule_HTTP
  */
-void
-InitModule_HTTP(cres)
-ChimeraResources cres;
-{
-  ChimeraSourceHooks ph;
-  HTTPClass *hc;
-  MemPool mp;
-  size_t tlen;
-  int i;
+void InitModule_HTTP(ChimeraResources cres) {
+	ChimeraSourceHooks ph;
+	HTTPClass *hc;
+	MemPool mp;
+	size_t tlen;
+	int i;
 
-  mp = MPCreate();
-  hc = (HTTPClass *)MPCGet(mp, sizeof(HTTPClass));
-  hc->mp = mp;
-  hc->passwords = GListCreateX(mp);
+	mp = MPCreate();
+	hc = (HTTPClass *)MPCGet(mp, sizeof(HTTPClass));
+	hc->mp = mp;
+	hc->passwords = GListCreateX(mp);
 
-  /* get the status messages and allocate a message work buffer */
-  for (i = 0; http_messages[i].name != NULL; i++)
-  {
-    if ((hc->msg[i] = ResourceGetString(cres, http_messages[0].name)) == NULL)
-    {
-      hc->msg[i] = http_messages[i].def;
-    }
-    if ((tlen = strlen(hc->msg[i])) > hc->mlen) hc->mlen = tlen;    
-  }
+	/* get the status messages and allocate a message work buffer */
+	for (i = 0; http_messages[i].name != NULL; i++) {
+		if ((hc->msg[i] = ResourceGetString(cres, http_messages[0].name)) == NULL) {
+			hc->msg[i] = http_messages[i].def;
+		}
+		if ((tlen = strlen(hc->msg[i])) > hc->mlen) hc->mlen = tlen;
+	}
 
-  memset(&ph, 0, sizeof(ph));
-  ph.class_closure = hc;
-  ph.name = "http";
-  ph.init = HTTPInit;
-  ph.destroy = HTTPDestroy;
-  ph.stop = HTTPCancel;
-  ph.getdata = HTTPGetData;
-  ph.class_destroy = HTTPClassDestroy;
-  SourceAddHooks(cres, &ph);
+	memset(&ph, 0, sizeof(ph));
+	ph.class_closure = hc;
+	ph.name = "http";
+	ph.init = HTTPInit;
+	ph.destroy = HTTPDestroy;
+	ph.stop = HTTPCancel;
+	ph.getdata = HTTPGetData;
+	ph.class_destroy = HTTPClassDestroy;
+	SourceAddHooks(cres, &ph);
 
-  return;
+	return;
 }

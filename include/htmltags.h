@@ -19,34 +19,32 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-typedef enum
-{
-  MARKUP_NONE    = 0x00000000,
-  MARKUP_EMPTY   = 0x00000001,
-  MARKUP_CLAMP   = 0x00000002,
-  MARKUP_FAKE    = 0x00000004,
-  MARKUP_SPACER  = 0x00000008,
-  MARKUP_TWOPASS = 0x00000010
+typedef enum {
+	MARKUP_NONE = 0x00000000,
+	MARKUP_EMPTY = 0x00000001,
+	MARKUP_CLAMP = 0x00000002,
+	MARKUP_FAKE = 0x00000004,
+	MARKUP_SPACER = 0x00000008,
+	MARKUP_TWOPASS = 0x00000010
 } HTMLMarkupFlags;
 
-struct HTMLTagP
-{
-  char *name;
-  HTMLTagID id;
+struct HTMLTagP {
+	char *name;
+	HTMLTagID id;
 
-  /* rendering functions */
-  HTMLTagRenderProc b, e;
-  HTMLTagDataProc d;
-  HTMLTagAddBoxProc a;
-  HTMLTagWidthProc w;
+	/* rendering functions */
+	HTMLTagRenderProc b, e;
+	HTMLTagDataProc d;
+	HTMLTagAddBoxProc a;
+	HTMLTagWidthProc w;
 
-  /* flags for whatever seems convienent to make a flag */
-  HTMLMarkupFlags mflags;
+	/* flags for whatever seems convienent to make a flag */
+	HTMLMarkupFlags mflags;
 
-  /* markup handling functions */
-  HTMLTagAcceptProc m;
-  HTMLTagInsertProc p;
-  HTMLTagClampProc c;
+	/* markup handling functions */
+	HTMLTagAcceptProc m;
+	HTMLTagInsertProc p;
+	HTMLTagClampProc c;
 };
 
 #define HTMLTestM(a, b)     (((a)->mflags & (b)) != 0)
@@ -192,13 +190,13 @@ static struct HTMLTagP tlist[] =
 	MARKUP_EMPTY,
 	NULL, NULL, NULL },
   { "select", TAG_SELECT, HTMLSelectBegin, HTMLSelectEnd, NULL, NULL, NULL,
-        MARKUP_CLAMP,
+		MARKUP_CLAMP,
 	NULL, NULL, NULL },
   { "option", TAG_OPTION, NULL, HTMLOptionEnd, NULL, NULL, NULL,
 	MARKUP_NONE,
 	NULL, NULL, NULL },
   { "textarea", TAG_TEXTAREA, NULL, HTMLTextareaEnd, NULL, NULL, NULL,
-        MARKUP_CLAMP,
+		MARKUP_CLAMP,
 	NULL, NULL, NULL },
   { "form", TAG_FORM, HTMLFormBegin, HTMLFormEnd, HTMLFillData, NULL, NULL,
 	MARKUP_CLAMP, NULL, NULL, NULL },
@@ -222,7 +220,7 @@ static struct HTMLTagP tlist[] =
 
   /* map.c */
   { "map", TAG_MAP, HTMLMapBegin, HTMLMapEnd, NULL, NULL, NULL,
-        MARKUP_CLAMP,
+		MARKUP_CLAMP,
 	HTMLMapAccept, NULL, NULL },
   { "area", TAG_AREA, HTMLAreaBegin, NULL, NULL, NULL, NULL,
 	MARKUP_EMPTY,
@@ -245,7 +243,7 @@ static struct HTMLTagP tlist[] =
 	NULL, NULL, NULL },
 
   /* Internal tags */
-  { "xxx-document", TAG_DOCUMENT, HTMLDocumentBegin, HTMLDocumentEnd, 
+  { "xxx-document", TAG_DOCUMENT, HTMLDocumentBegin, HTMLDocumentEnd,
 	HTMLFillData, HTMLDocumentAddBox, HTMLDocumentWidth,
 	MARKUP_FAKE, NULL, NULL, NULL }
 };

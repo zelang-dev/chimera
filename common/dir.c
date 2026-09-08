@@ -17,17 +17,10 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
 
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
-#include "port_after.h"
 
 #include "common.h"
 
@@ -82,7 +75,7 @@ char *cwd;
     strcat(r, c);
   }
   else r = MPStrDup(mp, c);
-  
+
   for (p = r; *p != '\0'; )
   {
     if (*p == '/')

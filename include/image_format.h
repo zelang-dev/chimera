@@ -41,10 +41,9 @@ InitProcDecl gifInit;
 InitProcDecl xbmInit;
 InitProcDecl pnmInit;
 InitProcDecl jpegInit;
-InitProcDecl pngInit;
+InitProcDecl stbInit;
 
-struct ifs_vector
-{
+struct ifs_vector {
   void *image_format_closure;
   int image_format;
   InitProc initProc;

@@ -40,7 +40,7 @@ typedef struct ccs_8_8_dither_table *cct_8_8_dither_table;
 typedef struct ccs_8_true_conversion_table *cct_8_true_conversion_table;
 typedef struct ccs_true_true_conversion_table *cct_true_true_conversion_table;
 
-union ccu_dither_table 
+union ccu_dither_table
 {
   void *generic_dither_table;
   cct_true_8_dither_table true_8_dither;
@@ -143,7 +143,7 @@ struct ccs_true_8_dither_table
  */
 struct ccs_8_8_dither_table
 {
-  unsigned int  pixel_values[4][256];
+  unsigned int  pixel_values[8][256];
            int  column_count; /* 2-8 */
 };
 

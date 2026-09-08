@@ -19,16 +19,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
-
 #include <stdio.h>
 #include <ctype.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "html.h"
 
@@ -393,7 +387,7 @@ MLElement p;
 	else if (x >= 100) width = x;
       }
     }
-    if (width > 0) ts->max_width = width;  
+    if (width > 0) ts->max_width = width;
     else ts->max_width = 0;
   }
   else
@@ -448,7 +442,7 @@ MLElement p;
   }
   else
   {
-    TablePosition2(ts); 
+    TablePosition2(ts);
 
     HTMLEnvAddBox(li, env->penv, ts->box);
   }
@@ -457,7 +451,7 @@ MLElement p;
 }
 
 /*
- * FillSpans 
+ * FillSpans
  */
 static void
 FillSpans(ts)
@@ -524,7 +518,7 @@ HTable *ts;
 	}
       }
     }
-    
+
     /*
      * Now extend HData to the right depending on the colspan.
      */
@@ -545,7 +539,7 @@ HTable *ts;
         if (rs->ca[i].ds == NULL) break;
       }
       myassert(ts->colcount != i, "Table column count confused.");
-      
+
       rs->ca[i].original = true;
       for (j = 0; j < ds->colspan; j++, i++)
       {
@@ -729,7 +723,7 @@ HTable *ts;
 	ds = rs->ca[i].ds;
 	width = ds->box->width / ds->colspan;
 	if (width > ts->cwidth[i]) ts->cwidth[i] = width;
-	
+
 	height = ds->box->height / ds->rowspan;
 	if (height > ts->rheight[j]) ts->rheight[j] = height;
       }
@@ -739,7 +733,7 @@ HTable *ts;
 	ds = rs->ca[i].ds2;
 	width = ds->box->width / ds->colspan;
 	if (width > ts->cwidth[i]) ts->cwidth[i] = width;
-	
+
 	height = ds->box->height / ds->rowspan;
 	if (height > ts->rheight[j]) ts->rheight[j] = height;
       }
@@ -897,4 +891,3 @@ HTMLEnv env;
   HTable *ts = (HTable *)env->closure;
   return(HTMLGetBoxWidth(li, ts->dbox));
 }
-

@@ -17,13 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
 
 #include <X11/IntrinsicP.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 
@@ -39,7 +38,7 @@ static void TimeOutHandler _ArgProto((XtPointer, XtIntervalId *));
 
 /*
  * TimeOutCreate
- */  
+ */
 ChimeraTimeOut
 TimeOutCreate(cres, interval, func, closure)
 ChimeraResources cres;
@@ -62,7 +61,7 @@ void *closure;
   pto->iid = XtAppAddTimeOut(pto->cres->appcon,
 			     (unsigned long)interval,
 			     TimeOutHandler, cres);
-  
+
   return(pto);
 }
 

@@ -4,7 +4,7 @@
 
 #ifndef __ENDIAN_H__
 #define __ENDIAN_H__ 1
-
+#include <endian.h>
 /*
  * Endianism determination by Erik Corry. Please email changes/additions!!!
  */
@@ -64,7 +64,7 @@
  * look in the compiler manual. Try to find a symbol that identifies the
  * processor, rather than the OS or compiler. If you have gcc on a Unix
  * system, the following will tell you what symbols it defines:
- * 
+ *
  * ln -s /dev/null null.c
  * gcc -ansi -dM -E null.c
  *
@@ -72,7 +72,12 @@
  * are going to have severe portability problems.
  *
  */
-Error: Unknown endianism of architecture
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define CHIMERA_LITTLE_ENDIAN
+#else
+#define CHIMERA_BIG_ENDIAN
+#endif
 #endif
 
 #ifdef __alpha__

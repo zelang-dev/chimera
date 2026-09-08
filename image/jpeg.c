@@ -26,13 +26,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "port_after.h"
 
 #include "common.h"
 #include "imagep.h"
@@ -75,7 +73,7 @@ void *pointer;
     if (jpeg->destroy_jpeg)
       jpeg_destroy_decompress(&jpeg->cinfo);
     jpeg->destroy_jpeg = false;
-    free_mem(jpeg);
+    free(jpeg);
   }
 }
 
@@ -314,16 +312,16 @@ lf_read_image(jpegState *jpeg)
       scanline_pointers[i] = output_addr;
       output_addr += jpeg->image->bytes_per_line;
     }
-  
+
     scanline_count =
       jpeg_read_scanlines(&jpeg->cinfo, scanline_pointers, max_scanlines);
 
     if (scanline_count == 0) return CH_JPEG_NEED_DATA;
-  
+
     if (jpeg->lineProc != NULL)
       (jpeg->lineProc)(jpeg->lineClosure, jpeg->ypos,
                        jpeg->ypos + scanline_count - 1);
-  
+
     jpeg->ypos += scanline_count;
   }
 
@@ -416,7 +414,7 @@ bool data_ended;
   /* Update libjpeg's input pointers */
   jpeg->input_state.pub.next_input_byte =
     ((JOCTET*) data) + jpeg->input_state.bytes_consumed;
-  jpeg->input_state.pub.bytes_in_buffer = 
+  jpeg->input_state.pub.bytes_in_buffer =
     len - jpeg->input_state.bytes_consumed;
   jpeg->input_state.faked_eoi = false; /* next_input_byte is valid */
   if (data_ended)
@@ -517,7 +515,7 @@ struct ifs_vector *if_vector;
   if_vector->getImageProc = &jpegGetImage;
 
   /* allocate my workspace */
-  jpeg = (jpegState *)alloc_mem(sizeof(jpegState));
+  jpeg = (jpegState *)malloc(sizeof(jpegState));
   if_vector->image_format_closure = (void *)jpeg;
   if (jpeg == NULL)
     return;

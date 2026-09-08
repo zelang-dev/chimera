@@ -18,16 +18,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include "port_before.h"
+
 
 #include <stdio.h>
 #include <ctype.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
-#include "port_after.h"
 
 #include "html.h"
 
@@ -135,7 +131,7 @@ MLElement p;
     HTMLAddFontWeight(env->fi);
   }
   else if (tagid == TAG_TT) HTMLSetFontFixed(env->fi);
-  
+
   return;
 }
 
@@ -295,4 +291,3 @@ MLElement p;
 
   return;
 }
-

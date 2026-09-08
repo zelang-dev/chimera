@@ -18,14 +18,12 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
-
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 
@@ -48,7 +46,7 @@ ChimeraSourceHooks *shooks;
 
   nhooks = (ChimeraSourceHooks *)MPCGet(cres->mp, sizeof(ChimeraSourceHooks));
   memcpy(nhooks, shooks, sizeof(ChimeraSourceHooks));
-  
+
   GListAddHead(cres->sourcehooks, nhooks);
 
   return(0);
@@ -201,20 +199,20 @@ char *filelist;
 
     fp = fopen(filename, "r");
     if (fp == NULL) continue;
-    
+
     while (fgets(buffer, sizeof(buffer), fp))
     {
       if (buffer[0] == '#' || buffer[0] == '\n') continue;
-      
+
       if (sscanf(buffer, "%s %[^\n]", content, exts) == 2)
       {
 	cp = exts;
 	while ((e = mystrtok(cp, ' ', &cp)) != NULL)
 	{
-	  c = (struct ChimeraType *)alloc_mem(sizeof(struct ChimeraType));
+	  c = (struct ChimeraType *)malloc(sizeof(struct ChimeraType));
 	  memset(c, 0, sizeof(struct ChimeraType));
-	  c->content = alloc_string(content);
-	  c->ext = alloc_mem(strlen(e) + 2);
+	  c->content = strdup(content);
+	  c->ext = malloc(strlen(e) + 2);
 	  strcpy(c->ext, ".");
 	  strcat(c->ext, e);
 
@@ -222,7 +220,7 @@ char *filelist;
 	}
       }
     }
-    
+
     fclose(fp);
   }
 

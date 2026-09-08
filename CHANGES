@@ -1,135 +1,148 @@
 2.0
 ---
+
 alpha 19 - 19990530
 --------
+
 Cancelling a blocked source caused a NULL function to get called...should be
-	fixed.  Changed chimera/source.c.
+ fixed.  Changed chimera/source.c.
 Portability changes for the NEC EWS4800/360PX.
-	Yozo Toda <yozo@aohakobe.ipc.chiba-u.ac.jp>
+ Yozo Toda <yozo@aohakobe.ipc.chiba-u.ac.jp>
 Portability changes to make gcc quieter when compiling.  Fixed function
-	type errors.  Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
+ type errors.  Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
 NULL return from malloc() in common/mempool.c at least triggers an error
-	message now but doesn't handle it.
+ message now but doesn't handle it.
 Fixed a problem which caused a cached entry to get bypassed.  Changes made
-	to TryMemoryCache() in chimera/source.c.
+ to TryMemoryCache() in chimera/source.c.
 
 alpha 18 - 19990527
 -------------------
+
 Fixed bug in proto/file.c that caused chimera to crash when large
-	directory listings were being processed.
+ directory listings were being processed.
 Hostnames entered in the URL field or with the Open dialog are transformed
-	into http://hostname/.  Change made to chimera/request.c.
+ into <http://hostname/>.  Change made to chimera/request.c.
 
 alpha 16/17 - 19990408
 ----------------------
+
 Added <Meta> to the beginning of the key bindings so that they didn't
         conflict with regular keystrokes.
 
 alpha 15 - 19980517
 -------------------
+
 Reload flag was ignored in SinkCreate() in chimera/source.c which caused
-	reloads to fail if the document was in core.
+ reloads to fail if the document was in core.
 Started hacking on CSS parser thing.  Created html/css.c and html/css.h
-	with some integration with existing html/ code.
+ with some integration with existing html/ code.
 Image load concurrance increased in html/inline.c.
 Added patch to chimera/resource.c.  Content could be accessed
-	uninitialized in TryMemoryCache().
-	smarry@pantransit.smar.reptiles.org
+ uninitialized in TryMemoryCache().
+ <smarry@pantransit.smar.reptiles.org>
 Problem with uninitialized variable in AddObject() in htm/html.c.
-	smarry@pantransit.smar.reptiles.org
+ <smarry@pantransit.smar.reptiles.org>
 Localhost and hostname weren't allowed as proxy hosts.  This caused
-	trouble with local proxies like wwwoffle.
+ trouble with local proxies like wwwoffle.
 wr->pup wasn't being passed to HTTPCreateInfo() from HTTPInit().
 The request sent to HTTP proxies was not complete.  Fixed HTTPGetFilename().
 Keyboard accelerators added.  Changes in chimera/WWW.c and chimera/head.c
-	 Andrew M. Bishop <amb@gedanken.demon.co.uk>
+  Andrew M. Bishop <amb@gedanken.demon.co.uk>
 
 alpha 14 - 19980103
 -------------------
+
 Fixed the authorization handling code in proto/http.c that was
-	broken in the previous release.
+ broken in the previous release.
 Included string.h in common/mime.c
-	Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
+ Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
 Modified chimera/Imakefile to work better with OS/2.
-	Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
+ Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
 Worked on chimera/source.c to make handling of downloads less buggy.
 Worked on chimera/view.c and chimera/stack.c to make handling of
-	external viewers less buggy.
+ external viewers less buggy.
 
 alpha 13 - 19971217
 -------------------
+
 Changed common/mime.c to do a better job of parsing the headers that
-	appear in MIMEish streams.  Required modifications to other
-	bits of code that called the functions in common/mime.c.
+ appear in MIMEish streams.  Required modifications to other
+ bits of code that called the functions in common/mime.c.
 Added patch to fix portability problems in image/jpegp.h and image/jpeg.c.
-	Tom Lane <tgl@sss.pgh.pa.us>
+ Tom Lane <tgl@sss.pgh.pa.us>
 Removed buggy error checking abort() thing in html/html.c.
-	Tom Lane <tgl@sss.pgh.pa.us>
+ Tom Lane <tgl@sss.pgh.pa.us>
 Code in proto/http.c reworked a bit to account for changes in common/mime.c
-	and to simplify it a bit.
+ and to simplify it a bit.
 
 alpha 12 - 19971211
 -------------------
+
 Added mention that app-defaults files should be avoided for v2 and that
-	a wrapper should be created if v1 and v2 are being used on the
-	same system to point v2 away from the v1 app-defaults file.
+ a wrapper should be created if v1 and v2 are being used on the
+ same system to point v2 away from the v1 app-defaults file.
 Added patch to html/misc.c to fix problems with bold and strong text.
-	Russell King <rmk@ecs.soton.ac.uk>
+ Russell King <rmk@ecs.soton.ac.uk>
 Chimera now looks at the last argument on the command line as the URL.
-	Regis Rampnoux <regisr@tmn.sofrecom.fr>
+ Regis Rampnoux <regisr@tmn.sofrecom.fr>
 Added patches for missing common.h in files in image/
-	Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
+ Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
 Fixed prototype in chimera/ChimeraSource.h
-	"Nelson H. F. Beebe" <beebe@math.utah.edu>
+ "Nelson H. F. Beebe" <beebe@math.utah.edu>
 Patch to frame code in html/frame.c.
-	Dave Davey <daved@physiol.usyd.edu.au>
+ Dave Davey <daved@physiol.usyd.edu.au>
 
 alpha 11
 --------
+
 Fixed memory leak at chimera/stack.c:280.  Frame-related memory leak still
-	exists.
+ exists.
 Fixed access of NULL ptr caused by lack of rows/cols attribute in frameset
-	in html/frame.c.
+ in html/frame.c.
 
 alpha 10
 --------
+
 Added patch for EMX/OS2. Alexander Mai <st002279@hrzpub.tu-darmstadt.de>
 Added patch to allow filenames as the initial URL. <mbaker@iee.org>
 Added patch to fix relative URLs for redirects in proto/http.c.
-	Julian Coleman <J.D.Coleman@newcastle.ac.uk>
+ Julian Coleman <J.D.Coleman@newcastle.ac.uk>
 
 alpha 9
 -------
+
 Fixed HTMLTitleEnd in html/head.c.
 Patch for QNX in common/uproc.c and bug in proto/http.c.
-	"D. J. Hawkey Jr." <hawkeyd@visi.com>
+ "D. J. Hawkey Jr." <hawkeyd@visi.com>
 Fixed initialization of parent_url in chimera/request.c.
-	Dave Davey <daved@physiol.usyd.edu.au>
+ Dave Davey <daved@physiol.usyd.edu.au>
 Resource user.email added to use as value for the From: field in
-	proto/mailto.c.
+ proto/mailto.c.
 
 alpha 8
 -------
+
 prototype for snprintf() added to port_after.h.  trouble expected.
 more prototypes added.
 ChimeraRequest destroyed twice in chimera/source.c.
-	"Bradley G. Kaiser" <bkaiser@edge.edge.net>
+ "Bradley G. Kaiser" <bkaiser@edge.edge.net>
 Added font fixup code to html/font.c
-	"Bradley G. Kaiser" <bkaiser@edge.edge.net>
+ "Bradley G. Kaiser" <bkaiser@edge.edge.net>
 Tag IDs are now compared instead of tag structure addresses in html/html.c
-	which fixes environment disaster bug spotted by
-	john kraft <jkraft@solti.mcis.washington.edu>
+ which fixes environment disaster bug spotted by
+ john kraft <jkraft@solti.mcis.washington.edu>
 NULL filename part in URL caused URLs to be resolved incorrectly.
-	common/url.c:resolve_filename() changed.
+ common/url.c:resolve_filename() changed.
 Added mailto code from.  Big win.
-	Dave Davey <daved@physiol.usyd.edu.au>
+ Dave Davey <daved@physiol.usyd.edu.au>
 Resource added to allow new head to get triggered on a type of URL.
-	Example: mailto.newhead: true
+ Example: mailto.newhead: true
 Resource added to allow the user to specify something besides sendmail
-	in proto/mailto.c.
+ in proto/mailto.c.
 
 alpha 7
 -------
+
 Added "find" button.
 Added string find capability to plain text renderer.  Bg/fg color broken.
 Changed search and query callbacks so they aren't such a pain to deal with.
@@ -137,167 +150,177 @@ Cleaned up some compiler complaints about functions without prototypes.
 
 alpha 6
 -------
+
 RequestCreate in chimera/request.c now properly calls the custom URL
-	parser callbacks and allows a URL to be handled completely
-	by a proxy.
+ parser callbacks and allows a URL to be handled completely
+ by a proxy.
 Moved architecture specific debugging flag selections from the toplevel
-	Imakefile to Common.tmpl.dist.
+ Imakefile to Common.tmpl.dist.
 Added patch to html/form.c to fix problem with call to RenderAction.
-	Erik Johannessen <erjohann@sn.no>
+ Erik Johannessen <erjohann@sn.no>
 Patch provided so that if the path is not defined by the resource
-	view.path then the PATH environment variable is used when
-	the path for external programs is specified.  Also, added
-	'/' in mytmpnam in common/util.c.
-	Sander van Malssen <svm@kozmix.ow.nl>
+ view.path then the PATH environment variable is used when
+ the path for external programs is specified.  Also, added
+ '/' in mytmpnam in common/util.c.
+ Sander van Malssen <svm@kozmix.ow.nl>
 Added '()' to the command passed to system() in chimera/view.c.
 Added popup to display the progress of downloads that will be viewed
-	with external viewers and to allow them to be cancelled.
+ with external viewers and to allow them to be cancelled.
 Frame 'src' had to be an absolute URL.  Now it can be a relative URL.
 Made other random hacks in chimera/ and html/ to make the
-	target attribute work.  Whoops, it doesn't work yet.
+ target attribute work.  Whoops, it doesn't work yet.
 Form image submit works better.
 
 alpha 5
 -------
+
 More work on HTML frames.
-Added various patches by J.D.Coleman@newcastle.ac.uk
+Added various patches by <J.D.Coleman@newcastle.ac.uk>
 Fixed problems with using FILENAME_MAX.  Reported by
-	roessner@rbg.informatik.th-darmstadt.de
+ <roessner@rbg.informatik.th-darmstadt.de>
 External viewers now work.  Bug reported by
-	Yozo Toda <yozo@aohakobe.ipc.chiba-u.ac.jp>
+ Yozo Toda <yozo@aohakobe.ipc.chiba-u.ac.jp>
 Moving to name anchors should work now.
 The previous position of a document should be remembered correctly now.
 HTTP basic authentication should work.
 
 alpha 4
 -------
+
 Moved files from www/ and main/ into chimera/.  Reworked stuff and
-	gratituously changed names to satisfy my inner child.
+ gratituously changed names to satisfy my inner child.
 Added HTML frames.
 
 alpha 3
 -------
+
 Added '#include <stdio>' to common/mime.c.
 Removed (XPointer *) from mxw/TextField.c.  Older versions of X don't
-	define XPointer.
+ define XPointer.
 
 alpha 2
 -------
+
 Added patch to www/io.c for HPUX.
-	Tom Lane <tgl@sss.pgh.pa.us>
+ Tom Lane <tgl@sss.pgh.pa.us>
 Added new jpeg.c and jpegp.h.
-	Tom Lane <tgl@sss.pgh.pa.us>
+ Tom Lane <tgl@sss.pgh.pa.us>
 Added linebreak after <hr>
 Fixed problem in html/flow.c:WidthFlow().  Width was not calculated
-	correctly after linebreak.
+ correctly after linebreak.
 Added code in html/flow.c:LayoutFlow() to make <br clear=mumble> work.
 Fixed a few type mismatches lurking in html/*.c.
 Added modifier for library names in Common.tmpl.dist in case system
-	library names clash.
+ library names clash.
 Stuck 'x' on the front of chimera library names to prevent clashes.
 
 alpha 1
 -------
+
 Added patch to html/font.c to make font weight selection better.
-	Jean-Marc Lasgouttes <Jean-Marc.Lasgouttes@inria.fr>
+ Jean-Marc Lasgouttes <Jean-Marc.Lasgouttes@inria.fr>
 Added patch to HTMLTDInsert() to deal with missing <tr> correctly.
 Added another tag handling kludge function to HTMLTag.  This one is used
-	to figure out how to clamp down end tags for things like <ul>
-	and <table>.
+ to figure out how to clamp down end tags for things like <ul>
+ and <table>.
 
 cfh-2.0
 -------
+
 alpha 171-190
 -------------
+
 Entities are case sensitive.  Changed strncasecmp to strncmp.
-	Erik <erjohann@sn.no>
+ Erik <erjohann@sn.no>
 Fixed code in common/mime.c to find the HTTP status.
 Fixed code for setting path in main/view.c.
 Various fixes from "D. J. Hawkey Jr." <hawkeyd@visi.com> for
-	PRE tags, URL handling, and QNX.
+ PRE tags, URL handling, and QNX.
 Created a bunch of resource access functions to make it easier to access
-	resource values.  Made cache resource dealings more reasonable
-	as suggested by Yozo Toda <yozo@aohakobe.ipc.chiba-u.ac.jp>
+ resource values.  Made cache resource dealings more reasonable
+ as suggested by Yozo Toda <yozo@aohakobe.ipc.chiba-u.ac.jp>
 Added chimera.urlLogFile resource.  If set to a valid writable file will
-	append a log of URLs that were loaded at the toplevel.
+ append a log of URLs that were loaded at the toplevel.
 Discovered reentrancy problem in main/download.c.
-	Same problem in main/view.c. (should be fixed now)
-	Smarasderagd <smar@reptiles.org>
+ Same problem in main/view.c. (should be fixed now)
+ Smarasderagd <smar@reptiles.org>
 Removed JCONFIG_INCLUDED from image/jpeg.c because it caused definitions
-	to get messed up in jpeg.h. Tom Lane <tgl@sss.pgh.pa.us>
+ to get messed up in jpeg.h. Tom Lane <tgl@sss.pgh.pa.us>
 Resources should now be correctly free'd when a head is destroyed in
-	main/widget.c.
+ main/widget.c.
 Added support for 'Host' field in proto/http.c.
 Fixed a bunch of memory leaks (but not even close to all of them).
         Added tracking code to common/list.c and common/mempool.c.
 Added a 'reusable' flag to the Scheme structure in www/data.c to indicate
-	cached documents can be reused without setting the cache
-	flag which would cause them to be recached.
+ cached documents can be reused without setting the cache
+ flag which would cause them to be recached.
 Added argument to WWWCancelData() to allow a distinction between cancelling
-	callbacks and actually cancelling the data.  Also hacked around
-	to make sure the code kept track of downloads more correctly.
+ callbacks and actually cancelling the data.  Also hacked around
+ to make sure the code kept track of downloads more correctly.
 Added code to html/inline.c to make sure that when the reload flag is set
-	that an inline is only reloaded once.
-Added code to www/context.c to look for the www.maxDownloads resource to
-	set the maximum number of concurrent downloads.
+ that an inline is only reloaded once.
+Added code to www/context.c to look for the <www.maxDownloads> resource to
+ set the maximum number of concurrent downloads.
 Added/fixed the code that actually limits the number of concurrent downloads.
-	Whoops.
+ Whoops.
 FTP code communicates failures back up the handler chain.  Probably needs
-	more work but should work better.
+ more work but should work better.
 Code in common/ml.c took a dump when untagged text showed up.
-	Should be fixed now.
+ Should be fixed now.
 The accept list is now taken in account when searching to see if a current
-	download can be used instead of starting a new download.  See
-	TryMemoryCache in data.c for details.
-Added code to look at www.printLoadMessages resource.
+ download can be used instead of starting a new download.  See
+ TryMemoryCache in data.c for details.
+Added code to look at <www.printLoadMessages> resource.
 Markup language parser code in common/ml.c revised to work a bit better.
-	Mostly changed to make comment handling work better.
+ Mostly changed to make comment handling work better.
 Patch to add keyboard editting commands to the text widget.  Joy!
-	"J.D.Coleman" <J.D.Coleman@newcastle.ac.uk>
+ "J.D.Coleman" <J.D.Coleman@newcastle.ac.uk>
 Added code to highlight tags when selected.
 If the first document is not HTML then no HTML fonts are created but
-	the HTML class code still tried to free them.  Should be fixed now.
+ the HTML class code still tried to free them.  Should be fixed now.
 Added config for AIX 3.2.5.
-	mark olesen <olesen@weber.me.queensu.ca>
+ mark olesen <olesen@weber.me.queensu.ca>
 Lots of reworked code in html/.
 
 alpha 169-170
 -------------
+
 -lsocket -lnsl added to OS_LIBS in Common.tmpl.dist for Solaris.
-	Yozo Toda <yozo@aohakobe.ipc.chiba-u.ac.jp>
+ Yozo Toda <yozo@aohakobe.ipc.chiba-u.ac.jp>
 Modified Common.tmpl.dist install directories as suggested by
-	Jean-Marc.Lasgouttes@inria.fr
+ <Jean-Marc.Lasgouttes@inria.fr>
 Made config changes for QNX.  "D. J. Hawkey Jr." <hawkeyd@visi.com>
 Switched URLParse back to putting NULL in filename if it is zero-length.
-	Doesn't change it if it is NULL.
+ Doesn't change it if it is NULL.
 Changed the file: code to change a NULL filename to "/".
 Added endianism for 68xxx.  David Wolfskill <david@dhw.vip.best.com>
 Changed column scaling in html/table.c:TablePosition1.
 Scaled box width didn't include the width of all of the columns when
-	colspan > 1.  Changed html/table.c:TablePosition1.
+ colspan > 1.  Changed html/table.c:TablePosition1.
 Fixed another problem in common/mempool.c and rearranged things a bit.
 Worked on main/download.c to make downloads behave a little better.
 Added patch for 1x1 interlaced GIF problem.
-	Smarasderagd <smar@reptiles.org>
+ Smarasderagd <smar@reptiles.org>
 Changed the MIME code to try to make it a bit faster.  Changes had to
-	be made all over the place.
+ be made all over the place.
 
 alpha 166-168
 -------------
+
 Added file.autoLoad resource.  If defined then the file protocol checks
-	to see if the URL specifies a directory and, if it does, checks to
-	see if the file specified in file.autoLoad exists in that
-	directory and loads it instead of a directory listing.
+ to see if the URL specifies a directory and, if it does, checks to
+ see if the file specified in file.autoLoad exists in that
+ directory and loads it instead of a directory listing.
 Added patch to fix alignment problem in mempool.c.
-	"J.D.Coleman" <J.D.Coleman@newcastle.ac.uk>
+ "J.D.Coleman" <J.D.Coleman@newcastle.ac.uk>
 Code in proto/http.c no longer cares about the useRedirect resource.
 Let HTTP error messages display instead of trying to trap the messages
-	in proto/http.c.
+ in proto/http.c.
 Fixed cache flag bug in proto/http.c.
 Removed -Wmissing-* because it caused old versions of gcc to become upset.
 Made sure inputs for forms are removed from any lists they might be
-	in when they're destroyed because the two-pass thing that
-	happens for tables causes a whole heap of trouble.
+ in when they're destroyed because the two-pass thing that
+ happens for tables causes a whole heap of trouble.
 If a cache directory can't be found then a message is printed on stderr.
 The environment variable WWW_HOME can be used to specify the first document.
 URLParse always returns "/" instead of a NULL or zero-length filename.
@@ -305,97 +328,103 @@ Listened to Jonny Quest theme by Reverend Horton Heat.  Liked it.
 
 alpha 165
 ---------
+
 Added __convex__ to image/image_endian.h.  Added ConvexArchitecture to
-	Common.tmpl.dist. David DeSimone <fox@convex.hp.com>
+ Common.tmpl.dist. David DeSimone <fox@convex.hp.com>
 Hopefully Common.tmpl.dist will deal with Solaris more reasonably.
-	Help from lots of people from bug-chimera.
+ Help from lots of people from bug-chimera.
 Added HPArchitecture based on tip from
-	Otmar Stahl <O.Stahl@lsw.uni-heidelberg.de>
+ Otmar Stahl <O.Stahl@lsw.uni-heidelberg.de>
 Cut buffer cleared if there is a valid URL inside that is used to
-	start a new shell.
+ start a new shell.
 Fixed problem with horizontal scrollbar introduced when the
-	trouble-causing arguments were removed from www/WWW.c
+ trouble-causing arguments were removed from www/WWW.c
 Replaced 'clock' with 'time' in common/util.c
 Added DIV tag to html/misc.c.
 Finally found a really annoying bug in the table code.  Rowspan > 1
-	in the middle of a row caused trouble.
+ in the middle of a row caused trouble.
 Dialogs now have one label area instead of two.
 
 alpha 164
 ---------
+
 Switched over to Alignment struct/union thing in common/mempool.c.
-	Markku Savela <msa@hemuli.tte.vtt.fi>.
+ Markku Savela <msa@hemuli.tte.vtt.fi>.
 Got rid of trouble-causing arguments in www/WWW.c.
 
 alpha 163
 ---------
+
 Commented out table debugging code.
 Re-enabled comment parsing in common/ml.c.
 common/mempool.c uses MEMPOOL_ALIGNSIZE to determine the alignment size.
-	The default is sizeof(size_t).
+ The default is sizeof(size_t).
 Boxes accessing related data after the data was destroyed causing
-	seg violation in html/module.c:HTMLDestroy.  Do box destruction
-	first.
+ seg violation in html/module.c:HTMLDestroy.  Do box destruction
+ first.
 Messages for downloading and other activities should appear in the
-	shell(s) that apply.  Added extra field to the file dialog so that
-	file operation messages will appear in the right spot.
+ shell(s) that apply.  Added extra field to the file dialog so that
+ file operation messages will appear in the right spot.
 Patch for URL escaping in common/url.c and html/form.c
-	Jake Kesinger <kesinger@math.ttu.edu>
+ Jake Kesinger <kesinger@math.ttu.edu>
 Patch for broken font handling in plain/plain.c
-	"T. Alexander Popiel" <popiel@rintintin.Colorado.EDU>
+ "T. Alexander Popiel" <popiel@rintintin.Colorado.EDU>
 Fakes <tr> before <td> or <th> more reasonably.
 Fixed bad declaration for HTMLAttributeToID in html/html.h.
-	Steven E Lumos <slumos@CS.UNLV.EDU>
+ Steven E Lumos <slumos@CS.UNLV.EDU>
 Made Common.tmpl.dist style a bit more consistent.
 Added patch submitted in 1994(!) to map URLs to other URLs using
-	regular expressions.  Theodore Ts'o <tytso@ATHENA.MIT.EDU>
-	This has been disabled for now for performance reasons.
+ regular expressions.  Theodore Ts'o <tytso@ATHENA.MIT.EDU>
+ This has been disabled for now for performance reasons.
 When a new head/shell is started the cut buffer is examined for a URL.
-	If there is a valid URL at the beginning then it will be loaded.
-	Changed main/main.c.
+ If there is a valid URL at the beginning then it will be loaded.
+ Changed main/main.c.
 In url.c:URLParse look for other separators not just '/' before ':'.
 Revampled www/request.c:WWWBuildRequest to make it more efficient hopefully.
 Baseline should be fixed for forms widgets.
 Switched over to using snprintf and fixed size buffers in a few
-	places.  Mostly in message handling.  Included code for snprintf
-	from LPRng-2.4.2.
+ places.  Mostly in message handling.  Included code for snprintf
+ from LPRng-2.4.2.
 www/mime.c:MIMEFindData searched one byte too far which caused really
-	all sorts of irritating trouble.
+ all sorts of irritating trouble.
 
 alpha 162
 ---------
+
 Added LinuxArchitecture to Common.tmpl.dist
 Proportional scaling of table columns added to html/table.c.
 Added BSD386Architecture to Common.tmpl.dist
 Baseline code for inline images fixed.
 Referenced NULL pointer in SubmitCallback fixed in html/form.c.
 Table width was ending up as 0 (probably a bug) which was later used
-	in a division.  Fixed to not cause SIGFPE.
+ in a division.  Fixed to not cause SIGFPE.
 All traces of the app-defaults file removed (hopefully).
 Right floating objects should now float to the right hand side even if there
-	aren't enough objects to push it to the edge.
+ aren't enough objects to push it to the edge.
 <td> or <th> before a <tr> looks bad but shouldn't cause a core file
-	to appear.
+ to appear.
 Missing 'l' in 'lenv' in HTMLOListEnd in html/list.c.
-	Added NetBSDArchitecture to Common.tmpl.dist
-	Added missing definitions to common/common.h for functions in
-	common/list.c "J.D.Coleman" <J.D.Coleman@newcastle.ac.uk>
+ Added NetBSDArchitecture to Common.tmpl.dist
+ Added missing definitions to common/common.h for functions in
+ common/list.c "J.D.Coleman" <J.D.Coleman@newcastle.ac.uk>
 Fixed other random table weirdness (my powers of description are stretched
-	to the max with some of this sludge I'm writing).
+ to the max with some of this sludge I'm writing).
 
 alpha 112-161
 -------------
+
 Lots of code reworked, moved around, and other fun stuff.
 Added GPL.
 Added Rob McMullen's TextField widget.
 Incorporated patch for numbering ordered lists.
-	Jake Kesinger <kesinger@math.ttu.edu> ?
+ Jake Kesinger <kesinger@math.ttu.edu> ?
 Added patch for dealing with malloc failures to the image/ code.
-	Smarasderagd <smar@reptiles.org>
+ Smarasderagd <smar@reptiles.org>
 Frames disappeared
 
 alpha 111
 ---------
+
 Made changes with the way frame position is set.  The position of
   a document is passed to the renderer for it to deal with.
 Fixed anchor handling in the HTML code.
@@ -403,9 +432,10 @@ Added for check "id" attribute.  Erik Corry <erik@kroete2.freinet.de>
 The HTML code now has a timeout that will destroy an inline if it
   takes too long to find its size.
 Moved the cache code into www/.
-  
+
 alpha 110
 ---------
+
 Frames are refreshed when they are resized.
 Made changes to html/* to improve HTML handling.
 Comments are handled slightly differently in common/ml.c.
@@ -414,6 +444,7 @@ Added support for the dreaded <center> tag.
 
 alpha 109
 ---------
+
 Fixed MEMPOOL_DEBUG usage in the defintion of pool.  common/mempool.c.
 NULL pointer accessed in www/frame.c:FrameQuery() sometimes when
   source requested.  Ben Taylor <bent@snm.com>
@@ -435,11 +466,13 @@ Fixed a problem with bookmarks...the element handler wasn't handling
 
 alpha 108
 ---------
+
 Fixed problems in html/form.c.  Reworked things a bit.  Still in bad
   shape.
 
 alpha 107
 ---------
+
 Changed proportional font default pattern in html/font.c.  Big win.
   Rob McMullen <rwmcm@hydra.ae.utexas.edu>
 Added patch to fix 'ENDIAN' preprocessor goodies in image/ and
@@ -467,6 +500,7 @@ Added better isspace() called isspace8().
 
 alpha 106
 ---------
+
 Parentless frames needed a fake parent ID to prevent collions with
   real parent IDs.  Solves all sorts of terrible problems.
 Added external viewer code.  Had to rearrange www/proto.c, www/frame.c, and
@@ -492,6 +526,7 @@ Bookmark now works when there is no bookmark file.
 
 alpha 104-105
 -------------
+
 InitModule_Message() was not initializing ProtoHooks correctly.
   Smarasderagd <smar@reptiles.org>
 Source button works now.
@@ -534,6 +569,7 @@ Forms code memory overrun.  html/form.c changed.
 
 alpha 103
 ---------
+
 Readded code to use the base filename of a URL as the default name
   for saving stuff.
 aXe scrolling text widget removed.
@@ -544,13 +580,14 @@ Support for <note> tag added.
 
 alpha 102
 ---------
+
 A colon delimited list of filenames can be specified for the dbFiles
   resource.
 URL failure was not being reported back to the parent frame.  This caused
   HTML rendering to stop forever waiting for the image.  Partially fixed.
   Reported by Karl Eichwalder <ke@ke.Central.DE>.
 Added support for the size attribute for form text input.
-  Larry Doolittle <doolitt@recycle.cebaf.gov> 
+  Larry Doolittle <doolitt@recycle.cebaf.gov>
 Paragraph align attribute was being carried over into the following
   paragraphs if the aligned paragraph didn't have an end tag.  Fixed.
   Reported by Karl Eichwalder <ke@ke.Central.DE>
@@ -564,12 +601,13 @@ Changed www/mime.c to add PNG filename extensions.
 Cache index file format is HTML.
 Fixed the blockquote nesting stuff.  Looks like it was coded to
   prevent nested blockquotes.  Probably sleepy that night.
-  Spotted by Jake Kesinger (kesinger@math.ttu.edu)
+  Spotted by Jake Kesinger (<kesinger@math.ttu.edu>)
 Ordered lists kind of work.  "Regular" Decimal only.  Formatting needs work.
-  Spotted by Jake Kesinger (kesinger@math.ttu.edu)
+  Spotted by Jake Kesinger (<kesinger@math.ttu.edu>)
 
 alpha 101
 ---------
+
 Fixed problem where an element was being created for text for the empty
   string between two tags.
 Rearranged frame.c and proto.c internals.
@@ -583,6 +621,7 @@ Changed the name of libimage.a to libximage.a and libmisc.a to libxmisc.a
 
 alpha 100
 ---------
+
 In TextareaText() and OptionText(), the length was initialized wrong
   the first time around.  Smarasderagd <smar@reptiles.org>
 Fixed problem in url.c...input data was being copied incorrectly.
@@ -619,7 +658,8 @@ Handling of HTTP redirects changed.
 
 alpha 99
 --------
-free_mem() was called too soon in ImageDestroy()
+
+free() was called too soon in ImageDestroy()
   Smarasderagd <smar@reptiles.org>
 For loop counter initialized incorrectly in LayoutSetupFonts().
   Smarasderagd <smar@reptiles.org>
@@ -633,6 +673,7 @@ Fixed problem in image/jpeg.c:
 
 alpha 98
 --------
+
 Fixed problem pointer problem in html/font.c.
   Smarasderagd <smar@reptiles.org>
 Straightened out common/mempool.c and combined common.h and mempool.h.
@@ -649,6 +690,7 @@ Reworked the I/O messages a bit.
 
 alpha 97
 --------
+
 Added code to allow a module to override the render hooks for a frame.
   Reason: the HTML module needs to trap button presses for inline images.
   Required changes to the Frame definition, html/inline.c, www/action.c,
@@ -656,12 +698,14 @@ Added code to allow a module to override the render hooks for a frame.
 
 alpha 96
 --------
+
 Made more changes to every directory for the Frame type change.
 Made buffer allocations for the next stream read larger to reduce the number
   of allocations.
 
 alpha 95
 --------
+
 Added size_t in some places.
 Added HAVE_STDDEF_H (check out common/common.h).
 Frames are no longer widgets.  This is to allow modules to create
@@ -670,6 +714,7 @@ Frames are no longer widgets.  This is to allow modules to create
 
 alpha 94
 --------
+
 Fixed a problem where the widgets used by the download renderer were not
   removed.  Michael Kellen <michael@xph029.physics.montana.edu>
 Cache simplified...removed memory caching.
@@ -692,15 +737,16 @@ Mucked around misc/cache.c.
 
 alpha 93
 --------
+
 Made memory cache read gradual.
 Changed www/io.c to act more like the alpha 80 version (more stable)
   and it also returns growing buffers which requires content handlers
   to keep track of offsets instead of addresses into the buffer
-  before FrameEndData() is called because realloc_mem() could cause
+  before FrameEndData() is called because realloc() could cause
   the addresses to become invalid.
 Fixed the HTML code to deal with the new www/io.c buffer policy.
 Applied patch to proto/http.c that fixed an initialization problem and
-  added NULL checks to www/proxy.c. Erik Corry ehcorry@inet.uni-c.dk
+  added NULL checks to www/proxy.c. Erik Corry <ehcorry@inet.uni-c.dk>
 Inserted missing 'else' in CacheMemRead().
 URL display works correctly again.
 WM_PROTOCOL delete is handled again.
@@ -710,6 +756,7 @@ Handling HTTP/0.x in proto/http.c fixed.
 
 alpha 92
 --------
+
 Forms stuff has been reenabled.  Sort of works.
 The download stuff is a bit more reasonable but not by much.
 Noodled around a bit...added a defintion for conversion modules.
@@ -717,6 +764,7 @@ Moved the message protocol to misc.
 
 alpha 91
 --------
+
 FrameEndData wasn't checking the closure argument which caused seg fault.
   Smarasderagd <smar@reptiles.org>
 Added patch that added comments to image/image.c, proxy matching code,
@@ -727,7 +775,7 @@ The cancel button sort of works.  The inlines don't get cancelled.
 GIF patches that fixed the endless loop problem and some other
   problems.  Shigeru Yamamoto <shige-y@is.aist-nara.ac.jp>
 GIF patch that fixed problems with interfaced 2-color GIFs.
-  Erik Corry <ehcorry@inet.uni-c.dk>  	
+  Erik Corry <ehcorry@inet.uni-c.dk>
 Added patch that reduced memory usage in proto/file.c, added
   HAVE_STRING_H to proto/error.c (now message.c), and fixed prototype
   in image/image.c.  Larry Doolittle <doolitt@recycle.cebaf.gov>
@@ -739,22 +787,25 @@ Error/status messages are now loaded with a URL of the form
 
 alpha 81-90
 -----------
+
 Rearranged everything.  Look at the code.
 
 alpha 78-80
 -----------
+
 Tons of patches for the color/image handling code.
-  Erik Corry ehcorry@inet.uni-c.dk
+  Erik Corry <ehcorry@inet.uni-c.dk>
 The y coordinate of the rectangle to refresh in CreateRenderLine() was
   set to the x coordinate which caused the bottom edge of the
   visible area to not be refreshed.
 Placement of text and other items has changed.  Changes in text.c and
   layout.c.
- 
+
 alpha 77
 --------
+
 Incorporated the second big patch to the color/image handling code.
-  Erik Corry ehcorry@inet.uni-c.dk
+  Erik Corry <ehcorry@inet.uni-c.dk>
 Problem with anchor text having leading spaces fixed.
 Added patch to WWWLayout() that makes it smarter when picking the next
   part to handle.  Larry Doolittle <doolitt@recycle.cebaf.gov>
@@ -763,6 +814,7 @@ Fixed problem with start anchor tag and missing end anchor tag.
 
 alpha 76
 --------
+
 Revised the way inline.c handles inline images mostly to deal with the
   changes below...
 xloadimage/ is now image/ and now has a generic interface to the image
@@ -772,12 +824,14 @@ Code changes for dealing with determining when a part can be rendered.
 
 alpha 75
 --------
+
 Added a big wad of important changes for much improved color
   handling.  Patches made in common, www, and xloadimage.
-  Erik Corry ehcorry@inet.uni-c.dk
+  Erik Corry <ehcorry@inet.uni-c.dk>
 
 alpha 74
 --------
+
 Number of inputs miscounted in form.c which caused overrun of malloc'd
   space in SubmitCallback().
 NameValueToURLEncoded() in form.c fixed.
@@ -790,6 +844,7 @@ Readded the external protocol stuff except that the name is kind of
 
 alpha 73
 --------
+
 Moved the HandleMumble() functions from layout.c just because.
 Added patch to wwwio/document.c to fix a problem with "no_proxy"
   handling.  Erik Corry <erik@kroete2.freinet.de>
@@ -807,6 +862,7 @@ Error messages should show up more often (instead of never).
 
 alpha 72
 --------
+
 Resizing is still a disaster.  Reloads a document completely.  Have to
   leave it for now.
 Made some improvements (hopefully) to the resizing of the clip, child,
@@ -814,6 +870,7 @@ Made some improvements (hopefully) to the resizing of the clip, child,
 
 alpha 71
 --------
+
 Improved memory situation.  Memory for the rendering stuff is allocated
   in chunks of BUFSIZ.  Makes things simpler, I hope.  Makes it
   faster for huge documents.
@@ -826,6 +883,7 @@ Added authentication stuff.  Something is wrong but its close.
 
 alpha 70
 --------
+
 Cache setup simplified.  Got rid of the cache info files.  Cache still
   disabled by default, though, because the widget is messed up and
   image stuff doesn't work right with the cache for some reason.
@@ -850,6 +908,7 @@ Fixed ConfigureWidgets() so that the width and height of the document
 
 alpha 69
 --------
+
 Added brokenHTML resource to relax the HTML parser.
 The request field was not being initialized in http_main.
 On the first pass of rendering/layout objects are not drawn if they are
@@ -857,6 +916,7 @@ On the first pass of rendering/layout objects are not drawn if they are
 
 alpha 68
 --------
+
 Check boxes were broken.  Should be fixed now.
 Radio boxes should work now.
 Weird whitespace in forms is turned into a space.
@@ -866,6 +926,7 @@ Fixed HTML parsing problems.  Probably introduced more problems but now
 
 alpha 65-67
 -----------
+
 More forms work.  Mucked with internal tag handling stuff.  Nothing fun.
 Made image refreshing work a little better, hopefully.
 Added BLOCKQUOTE.
@@ -876,6 +937,7 @@ Check for NULL method added in wwwio/http.c.
 
 alpha 63-64
 -----------
+
 Started work on forms.  Some stuff works.  Does not do well on Digital's
   test.
 Fixed bad problem in DestroyRenderPartList().  Who's stupid idea was it
@@ -885,6 +947,7 @@ Removed what little support there was for old versions of X stuff.
 
 alpha 62
 --------
+
 Fixed redirection handling.  Handles "Location".  Needs to handle "URI".
 Did some work to the scrollbars.
 Widget now handles title and author.
@@ -895,6 +958,7 @@ URL window allows user entry again.
 
 alpha 58-61
 -----------
+
 An I/O stream will timeout after 10 seconds.
 Number of downloads can be limited.
 Source works.  Problem is that it reloads the document which is a problem
@@ -915,6 +979,7 @@ Resize works.  Same problems as with source so I do an IOStop().  Grrr.
 
 alpha 11-57
 -----------
+
 Rewrote everything (almost).  Got rid of NCSA's HTML widget and rolled
   my own HTML parsing and rendering code.
 ftp_error_message free()'d a string literal.
@@ -922,13 +987,15 @@ ftp_error_message free()'d a string literal.
 
 alpha 10
 --------
+
 HTML widget changed a lot.  Expose and reformat code changed.
 Changed the title/message widget to just a plain pane (basically).
 Added anchor URL display.
-  Roman Czyborra <czyborra@cs.tu-berlin.de> 
+  Roman Czyborra <czyborra@cs.tu-berlin.de>
 
 alpha 1-9
 ---------
+
 Complete rewrite of the I/O handling code.  Socket select is now handled
   by the Xt event loop.  Moved net code, pseudo-MIME stuff, and caching
   code to its own directory.  The main UI code has been reworked to
@@ -948,7 +1015,7 @@ Added strlen(anchor) to MakeURL.  I think Martin made this fix too.  I
 Added patch to local.c so that local file directory listings contain
   lots of useful information.  Didn't include the FTP part because it
   won't work on all FTP servers.  Patch is at
-  http://xph029.physics.montana.edu/chimera/filesize.patch if you 
+  <http://xph029.physics.montana.edu/chimera/filesize.patch> if you
   would like to try it.  It needs work for 2.0...
 Added patch for SGML escape stuff. Jim Rees <rees@umich.edu>
 Patch to HTML.c to make scrolling work right.
@@ -958,8 +1025,10 @@ Made attempt to make sure POSIX header files are included.  Not done
 
 2.x
 ---
+
 Complete rewrite.
 
 1.x
 ---
+
 See the chimera-1.x distribution for changes.

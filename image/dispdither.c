@@ -31,16 +31,10 @@
  * o You shouldn't be trying to view jpegs on a 1-bit screen anyway. :-)
  */
 
-#include "port_before.h"
-
 #include <stdio.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
-#include "port_after.h"
-
+#include "common.h"
 #include "imagep.h"
 #include "colorcube.h"
 #include "dispdither.h"
@@ -57,7 +51,7 @@
 
 
 static void
-lf_color_dither_line_24_4_no_mapping( 
+lf_color_dither_line_24_4_no_mapping(
   cct_true_8_dither_table table,
   unsigned char *input,
   unsigned char *output,
@@ -89,7 +83,7 @@ lf_color_dither_line_24_4_no_mapping(
 }
 
 static void
-lf_color_dither_line_24_4_mapping( 
+lf_color_dither_line_24_4_mapping(
   cct_true_8_dither_table table,
   unsigned char *input,
   unsigned char *output,
@@ -125,7 +119,7 @@ lf_color_dither_line_24_4_mapping(
 }
 
 static void
-lf_color_dither_line_24_4( 
+lf_color_dither_line_24_4(
   cct_true_8_dither_table table,
   unsigned char *input,
   unsigned char *output,
@@ -139,7 +133,7 @@ lf_color_dither_line_24_4(
 }
 
 static void
-lf_color_dither_line_24_8_no_mapping( 
+lf_color_dither_line_24_8_no_mapping(
   cct_true_8_dither_table table,
   unsigned char *input,
   unsigned char *output,
@@ -157,7 +151,7 @@ lf_color_dither_line_24_8_no_mapping(
 }
 
 static void
-lf_color_dither_line_24_8_mapping( 
+lf_color_dither_line_24_8_mapping(
   cct_true_8_dither_table table,
   unsigned char *input,
   unsigned char *output,
@@ -177,7 +171,7 @@ lf_color_dither_line_24_8_mapping(
 }
 
 static void
-lf_color_dither_line_24_8( 
+lf_color_dither_line_24_8(
   cct_true_8_dither_table table,
   unsigned char *input,
   unsigned char *output,
@@ -195,7 +189,7 @@ lf_color_dither_line_24_8(
  */
 
 static void
-lf_color_dither_line_24_16( 
+lf_color_dither_line_24_16(
   cct_true_8_dither_table table,
   unsigned char *input,
   unsigned short *output,
@@ -318,12 +312,8 @@ lf_gray_dither_24_1(
   }
 }
 
-static void
-lf_gray_dither_24_2(
-  cct_8_8_dither_table table,
-  unsigned char *input,
-  unsigned char *output,
-  int pixel_count)
+static void lf_gray_dither_24_2(cct_8_8_dither_table table, unsigned char *input,
+	unsigned char *output, int pixel_count)
 {
   int x;
   for(x = pixel_count >> 2; x; x--)
@@ -1037,4 +1027,3 @@ ddf_gray_convert_line_24(
 
 
 /************************************************************************/
-

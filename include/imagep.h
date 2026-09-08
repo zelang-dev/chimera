@@ -31,7 +31,7 @@
 #ifndef MAX
 #define MAX(a,b) ((a) < (b) ? (b) : (a))
 #endif
- 
+
 #ifndef MIN
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
@@ -62,7 +62,6 @@ typedef struct rgbmap
 
 /* image structure
  */
-
 typedef struct
 {
   unsigned int  type;   /* type of image */
@@ -75,8 +74,10 @@ typedef struct
   unsigned int  depth;  /* depth of image in bits */
   unsigned int  pixlen; /* length of pixel in bits after padding */
   unsigned int  bytes_per_line; /* After padding */
-  float		gamma;	/* gamma of display the image is adjusted for */
-  byte         *data;   /* data rounded to full byte for each row */
+  float		gamma;		/* gamma of display the image is adjusted for */
+  byte *data;   		/* data rounded to full byte for each row */
+  size_t size;
+  size_t offset;
 } Image;
 
 #define IBAD    0 /* invalid image type (used when freeing) */
@@ -95,7 +96,6 @@ void   freeImage _ArgProto((Image *image));
 /*
  * this returns the (approximate) intensity of an RGB triple
  */
-
 #define colorIntensity(R,G,B) \
   (RedIntensity[(R) >> 8] + GreenIntensity[(G) >> 8] + BlueIntensity[(B) >> 8])
 

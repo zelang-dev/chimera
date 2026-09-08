@@ -4,24 +4,16 @@
  * Code grabbed from chimera 1.65.
  */
 
-#include "port_before.h"
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include <errno.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#ifndef __QNX__
-#include <sys/signal.h>
-#else
 #include <signal.h>
-#endif
 #include <sys/wait.h>
 #include <sys/stat.h>
 
-#include "port_after.h"
 
 #include "common.h"
 
@@ -45,20 +37,9 @@ ReapChild()
   * It would probably be better to use the POSIX mechanism here,but I have not
   * checked into it.  This gets us off the ground with SYSV.  RSE@GMI
   */
-#if defined(WNOHANG) && !defined(SYSV) && !defined(SVR4) && !defined(__QNX__) && !defined(__EMX__)
-  union wait st;
-
-  do 
-  {
-    errno = 0;
-    pid = wait3(&st, WNOHANG, 0);
-  }
-  while (pid <= 0 && errno == EINTR);
-#else
   int st;
 
   wait(&st);
-#endif
   StartReaper();
   errno = old_errno;
 

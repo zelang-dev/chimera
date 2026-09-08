@@ -18,21 +18,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include <X11/IntrinsicP.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 #include "mime.h"
@@ -146,7 +139,7 @@ ChimeraSource ws;
     myassert(c->state == SinkStateDestroyed, "Sink not destroyed");
 
     if (c->wt != NULL) TaskRemove(cres, c->wt);
-    MPDestroy(c->mp);    
+    MPDestroy(c->mp);
   }
 
   if (ws->closure != NULL) CMethod(ws->shooks.destroy)(ws->closure);
@@ -252,7 +245,7 @@ ChimeraSource ws;
   {
     ws->closure = CMethodVoidPtr(wr->hooks.init)(ws,
                                                  wr, wr->hooks.class_closure);
-    memcpy(&(ws->shooks), &(wr->hooks), sizeof(ws->shooks));    
+    memcpy(&(ws->shooks), &(wr->hooks), sizeof(ws->shooks));
     if (ws->closure != NULL) detail = wr->hooks.name;
   }
 
@@ -352,13 +345,13 @@ void *closure;
     }
     return;
   }
-  
+
   if (wp->ws->sstate == SourceStateComplete)
   {
     ChangeSinkState(wp, SourceEndTask, SinkStateComplete);
   }
   else ChangeSinkState(wp, NULL, SinkStateLoading);
-  
+
   return;
 }
 
@@ -418,7 +411,7 @@ ChimeraRequest *wr;
       }
     }
   }
-  
+
   return(NULL);
 }
 
@@ -704,7 +697,7 @@ ChimeraRequest *wr;
   memset(&wp->dhooks, 1, sizeof(wp->dhooks));
 
   GListAddTail(ws->sinks, wp);
-  
+
   if (cres->printLoadMessages)
   {
     fprintf (stderr, "Sink(%d) Create %s %s\n", wp->debug,
@@ -739,7 +732,7 @@ void *closure;
     myassert(hooks->add != NULL, "Add function is NULL.");
     myassert(hooks->end != NULL, "End function is NULL.");
     myassert(hooks->message != NULL, "Message function is NULL.");
-    
+
     memcpy(&wp->dhooks, hooks, sizeof(wp->dhooks));
     wp->closure = closure;
 
@@ -829,13 +822,7 @@ ChimeraSink wp;
 /*
  * SinkGetData
  */
-void
-SinkGetData(wp, data, len, mh)
-ChimeraSink wp;
-byte **data;
-size_t *len;
-MIMEHeader *mh;
-{
+void SinkGetData(ChimeraSink wp, byte **data, size_t *len, MIMEHeader *mh) {
   if (wp->ws->shooks.getdata != NULL)
   {
     CMethod(wp->ws->shooks.getdata)(wp->ws->closure, data, len, mh);

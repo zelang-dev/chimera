@@ -45,21 +45,18 @@ in this Software without prior written authorization from the X Consortium.
 
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
+#include "common.h"
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Scrollbar.h>
 
 #include <X11/keysym.h>
 
-#include "port_after.h"
 
 #include "WWWP.h"
 #include "Geom.h"
@@ -305,7 +302,7 @@ WWWGeometryManager(w, request, reply)
 Widget w;
 XtWidgetGeometry *request;
 XtWidgetGeometry *reply;
-{ 
+{
   return(XtGeometryNo);
 }
 
@@ -340,7 +337,7 @@ WWWWidget rw;
 			 (float)top/(float)total,
 			 (float)length/(float)total);
   }
-  
+
   if (rw->www.vert_bar != (Widget)NULL)
   {
     top = -(child->core.y);
@@ -368,18 +365,18 @@ int x, y;
   {
     x = -(child->core.width - clip->core.width);
   }
-  
+
   if (-y + (int)clip->core.height > (int)child->core.height)
   {
     y = -(child->core.height - clip->core.height);
   }
-  
+
   if (x >= 0) x = 0;
   if (y >= 0) y = 0;
 
   /* Mmmm hairy cast */
   XtMoveWidget(child, (Position)x, (Position)y);
-  
+
   RedrawThumbs(rw);
 
   return;
@@ -393,11 +390,11 @@ XtPointer call_data;
 {
   WWWWidget rw = (WWWWidget)XtParent(widget);
   register Widget child = rw->www.child;
-  int pix = (int)call_data;
+  int pix = (__intptr_t)call_data;
   Position x, y;
-  
+
   if (child == NULL) return;  /* no child to scroll. */
-  
+
   x = child->core.x - ((widget == rw->www.horiz_bar) ? pix : 0);
   y = child->core.y - ((widget == rw->www.vert_bar) ? pix : 0);
   WWWMoveChild((Widget)rw, (int)x, (int)y);
@@ -415,9 +412,9 @@ XtPointer call_data;
   register Widget child = rw->www.child;
   Position x, y;
   float *percent = (float *)call_data;
-  
+
   if (child == NULL) return;  /* no child to scroll. */
-  
+
   if (widget == rw->www.horiz_bar) x = -(int)(*percent * child->core.width);
   else x = child->core.x;
 
@@ -472,7 +469,7 @@ Cardinal *count;
 		ScrollUpDownProc, (XtPointer)new);
   XtAddCallback(new->www.vert_bar, XtNjumpProc,
 		ThumbProc, (XtPointer)new);
-  
+
   new->www.horiz_bar = XtVaCreateWidget("horiz_bar",
 					scrollbarWidgetClass, n,
 					XtNorientation, XtorientHorizontal,
@@ -649,7 +646,7 @@ Widget w;
 bool use_scroll;
 {
   WWWWidget rw = (WWWWidget)w;
-  
+
   rw->www.use_scroll = use_scroll;
   if (!rw->www.use_scroll)
   {

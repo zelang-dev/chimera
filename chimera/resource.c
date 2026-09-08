@@ -18,18 +18,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "port_before.h"
+
 
 #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 
-#include "port_after.h"
 
 #include "ChimeraP.h"
 
