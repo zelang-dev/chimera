@@ -1,0 +1,19 @@
+-------------------------
+INSTALLATION INSTRUCTIONS
+-------------------------
+
+To compile chimera, type:
+
+			cp Common.tmpl.dist Common.tmpl
+                        # modify Common.tmpl if necessary
+			xmkmf -a
+                        make
+
+Some releases of xmkmf are broken so you might have to type:
+
+			xmkmf
+			make Makefiles depend clean
+			make
+
+You'll end up with a binary that should run OK without any other
+files.

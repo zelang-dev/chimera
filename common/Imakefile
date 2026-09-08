@@ -1,0 +1,11 @@
+#include <../Common.tmpl>
+
+SRCS = mime.c list.c ml.c mempool.c dmem.c util.c dir.c url.c uproc.c
+OBJS = mime.o list.o ml.o mempool.o dmem.o util.o dir.o url.o uproc.o
+
+EXTRA_DEFINES  = $(CHIMERA_DEFINES)
+EXTRA_INCLUDES = -I./ -I../port
+
+NormalLibraryTarget(xcommon, $(OBJS))
+
+DependTarget()

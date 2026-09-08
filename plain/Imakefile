@@ -1,0 +1,14 @@
+#include <../Common.tmpl>
+
+SRCS    = plain.c
+
+OBJS    = plain.o
+
+EXTRA_DEFINES  = $(CHIMERA_DEFINES)
+EXTRA_INCLUDES = -I../port -I../mxw -I../common -I../chimera
+
+NormalLibraryTarget(xplain, $(OBJS))
+
+DependTarget()
+
+install.man::

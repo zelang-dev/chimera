@@ -1,0 +1,14 @@
+#include <../Common.tmpl>
+
+SRCS = file.c http.c ftp.c mailto.c
+
+OBJS = file.o http.o ftp.o mailto.o
+
+INCLUDES = -I. -I../port -I../common -I../chimera
+
+EXTRA_DEFINES = $(CHIMERA_DEFINES)
+
+NormalLibraryTarget(xproto, $(OBJS))
+DependTarget()
+
+install.man::

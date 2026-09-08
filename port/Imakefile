@@ -1,0 +1,31 @@
+#include <../Common.tmpl>
+
+#ifdef NEED_MEMMOVE
+SRC1 = memmove.c
+OBJ1 = memmove.o
+#endif
+
+#ifdef NEED_GETCWD
+SRC2 = getcwd.c
+OBJ2 = getcwd.o
+#endif
+
+#ifdef NEED_STRSTUFF
+SRC3 = strcasecmp.c strtol.c strstr.c strtoul.c
+OBJ3 = strcasecmp.o strtol.o strstr.o strtoul.o
+#endif
+
+#ifndef HAVE_SNPRINTF
+SRC5 = snprintf.c
+OBJ5 = snprintf.o
+#endif
+
+SRCS = junk.c $(SRC1) $(SRC2) $(SRC3) $(SRC5)
+OBJS = junk.o $(OBJ1) $(OBJ2) $(OBJ3) $(OBJ5)
+
+EXTRA_DEFINES  = $(CHIMERA_DEFINES)
+EXTRA_INCLUDES = -I./
+
+NormalLibraryTarget(xport, $(OBJS))
+
+DependTarget()

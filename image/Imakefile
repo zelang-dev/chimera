@@ -1,0 +1,28 @@
+#include <../Common.tmpl>
+
+#ifdef Use_JPEG
+JPEG_INCLUDES = $(JPEGINCLUDE)
+JPEG_DEFINES = -DHAVE_JPEG
+JPEG_OBJS = jpeg.o
+JPEG_SRCS = jpeg.c
+#endif
+
+#ifdef Use_PNG
+PNG_INCLUDES = $(PNGINCLUDE)
+PNG_DEFINES = -DHAVE_PNG
+PNG_OBJS = png.o
+PNG_SRCS = png.c
+#endif
+
+OBJS = gif.o xbm.o pnm.o new.o dispdither.o halftone.o \
+       colorcube.o xcolorcube.o image.o $(JPEG_OBJS) $(PNG_OBJS)
+
+SRCS = gif.c xbm.c pnm.c new.c dispdither.c halftone.c \
+       colorcube.c xcolorcube.c image.c $(JPEG_SRCS) $(PNG_SRCS)
+
+EXTRA_INCLUDES = -I../port -I../common -I../chimera $(JPEG_INCLUDES) $(PNG_INCLUDES)
+EXTRA_DEFINES  = $(XRELEASE) $(CHIMERA_DEFINES) $(JPEG_DEFINES) $(PNG_DEFINES)
+
+NormalLibraryTarget(ximage, $(OBJS))
+
+DependTarget()

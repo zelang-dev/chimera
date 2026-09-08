@@ -1,0 +1,79 @@
+This is really kind of sparse.
+
+---------
+Compiling
+---------
+
+If you're unsure if chimera will compile then try the simplest thing:
+
+cp Common.tmpl.dist Common.tmpl
+xmkmf
+make Makefiles depend clean all
+
+I use HAVE_xxx_H defines to allow users with systems that don't
+have all of the standard header files to easily weed them out of
+the compilation.  I also use HAVE_xxx where xxx is a function
+that doesn't appear in every system (e.g. the POSIX function mktime())
+but the source can make allowances for this.
+Some functions are included in common that are required but that
+don't appear everywhere.  You can have them linked in by specifying
+the proper NEED_xxx thing in Common.tmpl.  Check common/Imakefile for
+a current list.
+
+If you have trouble doing the simplest thing, please let me know
+so that I can try to fix the problem.  You should only have to
+change Common.tmpl.  If you figure out what needs to be done to
+get it to compile (like adding a #if defined() thing in Common.tmpl
+with the proper defines set for a particular machine), please send
+it to me so that I can include it.  Of course, I can't guarantee that
+I will include all contributions.
+
+If you need to specify site-dependent defines or libraries then
+search for SITE_* in Common.tmpl and add them there.
+
+Also, if you need to force the compiler to something special (say, gcc)
+then remove 'XCOMM' from the line (in Common.tmpl):
+
+XCOMM CC = gcc
+
+and change the compiler to whatever you need.
+
+---------
+Resources
+---------
+
+There are two types of resources used by chimera.  X/GUI resources
+and, for lack of a better term, chimera resources.  Chimera resources
+are formatted exactly like the X resources but are loaded separately.
+
+I strongly recommend that you do not use an app-defaults file unless
+you really want to change the appearance.  I'm not even going to
+try to produce an example...you're on your own here or you can
+ask the bug-chimera list for examples (there are clever folks that
+will probably get around to this one of these days).
+
+If you install an older version of chimera that installed an app-defaults
+file then you should remove it or if you need it because 1.65 or some
+other version needs it then you can run 2.0 with the command:
+
+XFILESEARCHPATH="" chimera-2.0
+
+By default, chimera looks for its own resources in ~/.chimera/resources.
+I recommend you create the directory ~/.chimera since most of the
+defaults for chimera will point to this directory for files.  One
+possible resources file:
+
+bookmark.filename: ~/.chimera/bookmarks.html
+cache.directory: ~/.chimera/cache
+cache.persist: true
+chimera.homeURL: http://www/
+html.propFontPattern: -adobe-helvetica-*-*-*-*-*-*-*-*-*-*-iso8859-1
+view.capFiles: ~/.chimera/mailcap:~/.mailcap
+
+------------
+app-defaults
+------------
+Don't use them with Chimera v2.  If you have an app-defaults file that
+you need for Chimera v1 then you should create a script that
+changes XUSERFILESEARCHPATH so that it doesn't look at the default
+app-defaults directory.

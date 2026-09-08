@@ -1,0 +1,16 @@
+#include <../Common.tmpl>
+
+HEADERS = MyDialog.h MyDialogP.h TextField.h TextFieldP.h AuthDialogP.h \
+          AuthDialog.h
+         
+SRCS = MyDialog.c TextField.c AuthDialog.c
+OBJS = MyDialog.o TextField.o AuthDialog.o
+
+EXTRA_INCLUDES = -I./ -I../port
+EXTRA_DEFINES  = $(CHIMERA_DEFINES)
+
+NormalLibraryTarget(mxw, $(OBJS))
+
+DependTarget()
+
+install.man::

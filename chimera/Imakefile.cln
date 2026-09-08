@@ -1,0 +1,25 @@
+#include <../Common.tmpl>
+
+SRCS = Geom.c WWW.c gui.c bookmark.c builtin.c cache.c \
+       cmisc.c source.c download.c \
+       fallback.c io.c main.c render.c request.c resource.c \
+       stack.c timeout.c view.c head.c auth.c task.c
+
+OBJS = Geom.o WWW.o gui.o bookmark.o builtin.o cache.o \
+       cmisc.o source.o download.o \
+       fallback.o io.o main.o render.o request.o resource.o \
+       stack.o timeout.o view.o head.o auth.o task.o
+
+EXTRA_DEFINES  = $(CHIMERA_DEFINES) $(RXDEFINES)
+EXTRA_INCLUDES = -I./ -I../mxw -I../common -I../port
+EXTRA_LOAD_FLAGS = $(CHIMERA_LOAD_FLAGS)
+EXTRA_LIBRARIES  = $(CHIMERA_LIBS)
+
+AllTarget(ProgramTargetName(chimera))
+
+NormalProgramTarget(chimera, $(OBJS), $(CHIMERA_DEPLIBS), MyNull, MyNull)
+
+InstallProgram(chimera,$(CHIMERA_BINDIR))
+InstallManPage(chimera,$(CHIMERA_MANDIR))
+
+DependTarget()

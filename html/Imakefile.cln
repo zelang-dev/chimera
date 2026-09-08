@@ -1,0 +1,26 @@
+#include <../Common.tmpl>
+
+HEADERS = html.h htmltags.h
+
+SRCS    = module.c html.c layout.c text.c misc.c font.c load.c flow.c \
+          head.c inline.c list.c form.c hr.c table.c map.c frame.c \
+          css.c
+
+OBJS    = module.o html.o layout.o text.o misc.o font.o load.o flow.o \
+	  head.o inline.o list.o form.o hr.o table.o map.o frame.o \
+          css.o
+
+EXTRA_DEFINES  = $(CHIMERA_DEFINES)
+EXTRA_INCLUDES = -I../port -I../mxw -I../common -I../chimera
+
+NormalLibraryTarget(xhtml, $(OBJS))
+
+cssxxx.o: css.c css.h
+	$(CC) -c $(CDEBUGFLAGS) -DCSSDEBUG $(EXTRA_DEFINES) $(EXTRA_INCLUDES) css.c -o $@
+
+csstest: cssxxx.o
+	$(CC) cssxxx.o $(CHIMERA_LIBS) -o $@
+
+DependTarget()
+
+install.man::

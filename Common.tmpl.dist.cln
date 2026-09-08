@@ -1,0 +1,229 @@
+/*
+ * Common config file
+ */
+
+/*
+ * Installation directories.
+ *
+ * CHIMERA_BINDIR  - chimera's executable gets installed here.
+ * CHIMERA_LIBDIR  - configuration files.  someday.
+ * CHIMERA_MANDIR  - directory to hold the outdated man page.
+ */
+/*
+CHIMERA_PREFIX = /usr/local
+CHIMERA_BINDIR = $(CHIMERA_PREFIX)/bin
+CHIMERA_LIBDIR = $(CHIMERA_PREFIX)/lib/chimera
+CHIMERA_MANDIR = $(CHIMERA_PREFIX)/man
+*/
+
+#if !defined(__QNX__)
+LIBPRE=lib
+LIBEXT=.a
+#else
+LIBPRE=
+LIBEXT=3r.lib
+#endif
+
+/*
+ * Add a bit of fluff to the end of the image library name if
+ * you need it.  For example, on IRIX and Linux boxes its nice
+ * to use it to differentiate from the vendor libraries of the same
+ * name.
+ */
+/*
+IMGLEXT = _local
+*/
+
+/* Uncomment and modify if you have the JPEG 6 library */
+/*
+#define Use_JPEG
+JPEGDIR = /usr/local
+JPEGINCLUDE = -I$(JPEGDIR)/include
+JPEGLIB = -L$(JPEGDIR)/lib -ljpeg$(IMGLEXT)
+JPEGDEPLIB = $(JPEGDIR)/lib/libjpeg$(IMGLEXT).a
+*/
+
+/* Uncomment and modify if you have the PNG library */
+/*
+#define Use_PNG
+PNGDIR = /usr/local
+PNGINCLUDE = -I$(PNGDIR)/include
+PNGLIB = -L$(PNGDIR)/lib -lpng$(IMGLEXT) -lz$(IMGLEXT)
+PNGDEPLIB = $(PNGDIR)/lib/libpng$(IMGLEXT).a $(PNGDIR)/lib/libz$(IMGLEXT).a
+*/
+
+/* Tells Imakefile to set the flags for debugging.  Comment for -O. */
+#define CDebugging 1
+
+/* You might need to force the compiler to gcc */
+/*
+CC = gcc
+*/
+
+/* Add site stuff here */
+SITE_DEFINES =
+SITE_LIBS =
+SITE_DEPLIBS =
+SITE_LDFLAGS =
+
+/*
+ * You should not have change anything below unless you add a new
+ * OS feature section or add your own module.
+ */
+
+/*
+ *
+ * OS features
+ *
+ */
+
+/* Sparcs */
+#if defined(SunArchitecture)
+#if OSMajorVersion > 4 /* Solaris */
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_SSIZE_T -DHAVE_STDARG_H
+OS_LIBS = -lsocket -lnsl
+#else /* SunOS 4.1.4 X11R6, gcc */
+#define NEED_MEMMOVE 1
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_STDARG_H
+OS_LIBS =
+#endif
+#define CConfigSet 1
+#endif
+
+/* DEC UNIX */
+#if defined(AlphaArchitecture)
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+	     -DHAVE_UTIME -DHAVE_MKTIME -D_BSD -DHAVE_SIZE_T -DHAVE_SSIZE_T \
+             -DHAVE_STDARG_H
+OS_LIBS = -lbsd
+OS_DEBUG_FLAGS = -std1
+#define CConfigSet 1
+#endif
+
+/* IRIX */
+#if defined(SGIArchitecture)
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_SSIZE_T \
+             -DHAVE_STDARG_H
+OS_LIBS =
+OS_DEBUG_FLAGS = -fullwarn
+#define CConfigSet 1
+#endif
+
+/* FreeBSD, BSDI, NetBSD */
+#if defined(FreeBSDArchitecture) || defined(BSD386Architecture) || defined(NetBSDArchitecture)
+#define HAVE_SNPRINTF 1
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_SSIZE_T \
+             -DHAVE_STDARG_H -DHAVE_SNPRINTF
+OS_LIBS =
+#define CConfigSet 1
+#endif
+
+/* Linux */
+#if defined(LinuxArchitecture)
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_SSIZE_T \
+             -DHAVE_STDARG_H
+OS_LIBS =
+#define CConfigSet 1
+#endif
+
+/* Convex */
+#if defined(ConvexArchitecture)
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_STDARG_H
+OS_LIBS =
+#define CConfigSet 1
+#endif
+
+/* HP */
+#if defined(HPArchitecture)
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_STDARG_H \
+             -DHAVE_SSIZE_T
+OS_LIBS =
+#define CConfigSet 1
+#endif
+
+/* QNX */
+#if defined(__QNX__)
+CC = cc -Otx -mf -zp1 -w4
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_SSIZE_T \
+             -DHAVE_STDARG_H
+OS_LIBS =
+#define CConfigSet 1
+#endif
+
+/* AIX 3.2.5 */
+#if defined(RsArchitecture)
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_SSIZE_T \
+             -DHAVE_STDARG_H
+OS_LIBS =
+#define CConfigSet 1
+#endif
+
+/* OS/2, XFree86 & EMX gcc */
+#if defined(OS2Architecture) && !defined(CConfigSet)
+#define NEED_SNPRINTF 1
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H \
+             -DHAVE_STDDEF_H -DHAVE_SIZE_T -DHAVE_SSIZE_T \
+             -DHAVE_STDARG_H 
+OS_LIBS =-lsocket
+#define CConfigSet 1
+#endif
+
+/* NEC EWS4800 with ansi cc -- yozo.  Fri Apr  9 09:23:42 JST 1999 */
+#if defined(_nec_ews_svr4) && !defined(CConfigSet)
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SSIZE_T -DHAVE_SIZE_T \
+             -DHAVE_STDARG_H
+OS_LIBS = -lsocket -lnsl
+OS_DEBUG_FLAGS =
+#define CConfigSet 1
+#endif
+
+/* everything else hopefully */
+#if !defined(CConfigSet)
+OS_DEFINES = -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_UNISTD_H -DHAVE_STDDEF_H \
+             -DHAVE_UNAME -DHAVE_MKTIME -DHAVE_SIZE_T -DHAVE_STDARG_H
+OS_LIBS =
+OS_DEBUG_FLAGS =
+#define CConfigSet 1
+#endif
+
+/*
+ *
+ * Glue together the various flags for compiling and linking
+ *
+ */
+CHIMERA_DEFINES = $(OS_DEFINES) $(SITE_DEFINES)
+
+CHIMERA_LOAD_FLAGS = $(OS_LDFLAGS) $(SITE_LDFLAGS)
+
+IMAGELIB     = -L../image -lximage $(JPEGLIB) $(PNGLIB)
+IMAGEDEPLIB  = ../image/$(LIBPRE)ximage$(LIBEXT) $(JPEGDEPLIB) $(PNGDEPLIB)
+HTMLLIB      = -L../html -lxhtml
+HTMLDEPLIB   = ../html/$(LIBPRE)xhtml$(LIBEXT)
+PLAINLIB     = -L../plain -lxplain
+PLAINDEPLIB  = ../plain/$(LIBPRE)xplain$(LIBEXT)
+PROTOLIB     = -L../proto -lxproto
+PROTODEPLIB  = ../proto/$(LIBPRE)xproto$(LIBEXT)
+OTHERLIB     = -L../common -lxcommon -L../mxw -lmxw \
+               -L../port -lxport \
+               XawClientLibs -lm
+OTHERDEPLIB  = ../common/$(LIBPRE)xcommon$(LIBEXT) \
+               ../port/$(LIBPRE)xport$(LIBEXT) \
+               ../mxw/$(LIBPRE)mxw$(LIBEXT)
+
+CHIMERA_LIBS = $(IMAGELIB) $(HTMLLIB) $(PROTOLIB) $(PLAINLIB) \
+               $(OTHERLIB) $(OS_LIBS) $(SITE_LIBS)
+
+CHIMERA_DEPLIBS = $(IMAGEDEPLIB) $(HTMLDEPLIB) $(PROTODEPLIB) \
+                  $(PLAINDEPLIB) $(OTHERDEPLIB) $(SITE_DEPLIBS)
+
+#define MyNull

@@ -1,0 +1,60 @@
+                                Chimera 2.0
+                       X11/Athena World-Wide Web Client
+                      written by John Kilburg and others
+
+Chimera is an X/Athena Web client for UNIX-based workstations.
+Chimera does not require Motif.
+
+Chimera can be found at <URL:http://www.unlv.edu/chimera/> or
+<URL:ftp://ftp.cs.unlv.edu/pub/chimera>.
+
+There is a mailing list called
+
+bug-chimera@cs.unlv.edu
+
+that is used for bug reports, feature requests, and general chimera
+discussion.
+
+If you want to join the list (receive the emails that go to bug-chimera)
+send email to
+
+bug-chimera-request@cs.unlv.edu
+
+There is also a mailing list that receives announcements of new chimera
+releases.  If you want to join the list, send email to
+
+chimera-announce-request@cs.unlv.edu
+
+Read INSTALL for installation instructions.  Read README.hints for hints.
+
+Directories:
+
+chimera        Chimera Core
+
+doc            License information and other stuff.
+
+mxw            Miscellaneous Xt widgets.
+
+image          Library for GIFs, JPEGs, ...
+               Nearly all of this was written by
+               Erik Corry <ehcorry@inet.uni-c.dk>.
+
+html           An attempt at an HTML renderer
+
+proto          Library for HTTP, FTP, and local file access.
+
+common         Generally useful functions
+
+port           Contains functions and header files used for portability
+               purposes
+
+See the file COPYRIGHT for license information.
+
+Jay Nietling (jay@egr.unlv.edu) and Greg Wohletz (greg@egr.unlv.edu)
+are the system guys for the engineering college at UNLV.
+They have done a really nice job of setting up and maintaining the
+computing environment here (Athena stuff and a ton of other goodies
+on a wad of architectures).
+
+John Kilburg
+john@cs.unlv.edu
