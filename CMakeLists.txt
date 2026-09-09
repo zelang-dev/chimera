@@ -6,7 +6,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
 endif()
 
 project(chimera
-	VERSION 2.1.0
+	VERSION 3.0.0
 	DESCRIPTION "X11/Athena World-Wide Web Client"
     LANGUAGES C
 )
