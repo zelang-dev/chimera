@@ -7,7 +7,7 @@ endif()
 
 project(chimera
 	VERSION 3.0.0
-	DESCRIPTION "X11/Athena World-Wide Web Client"
+	DESCRIPTION "X11/Athena World-Wide Web Browser"
     LANGUAGES C
 )
 
