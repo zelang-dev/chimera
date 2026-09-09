@@ -54,22 +54,22 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format -fno-strict-aliasing -D NeedFunctionPrototypes")
 
 	file(GLOB app_files
-		${CMAKE_CURRENT_SOURCE_DIR}/chimera/*.c)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/chimera/*.c)
 
 	file(GLOB proto_files
-		${CMAKE_CURRENT_SOURCE_DIR}/proto/*.c)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/proto/*.c)
 	file(GLOB plain_files
-		${CMAKE_CURRENT_SOURCE_DIR}/plain/*.c)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/plain/*.c)
 	file(GLOB mxw_files
-		${CMAKE_CURRENT_SOURCE_DIR}/mxw/*.c)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/mxw/*.c)
 	file(GLOB image_files
-		${CMAKE_CURRENT_SOURCE_DIR}/image/*.c)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/image/*.c)
 	file(GLOB html_files
-		${CMAKE_CURRENT_SOURCE_DIR}/html/*.c)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/html/*.c)
 	file(GLOB ext_files
-		${CMAKE_CURRENT_SOURCE_DIR}/ext/*.c)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/ext/*.c)
 	file(GLOB common_files
-		${CMAKE_CURRENT_SOURCE_DIR}/common/*.c)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/common/*.c)
 
 	if(BUILD_SHARED_LIBS)
 		add_library(${PROJECT_NAME} SHARED
@@ -122,16 +122,12 @@ else()
 		$<INSTALL_INTERFACE:${TIFF_INCLUDE_DIRS})
 
 	if(BUILD_NATIVE_XAW)
-		target_compile_definitions(${PROJECT_NAME}
-			PUBLIC X11_WINDOW_ICON="${CMAKE_SOURCE_DIR}/resources/icon_32x32.xpm"
-			PUBLIC NATIVE_XAW=1)
+		target_compile_definitions(${PROJECT_NAME} PUBLIC NATIVE_XAW=1)
 		target_link_libraries(${PROJECT_NAME}
 			Xaw X11::Xmu X11::Xt Xpm X11::X11 OpenGL::GL OpenGL::GLU
 			${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY} opentls crypto dl m
 			TIFF::TIFF PNG::PNG JPEG::JPEG)
 	else()
-		target_compile_definitions(${PROJECT_NAME}
-			PUBLIC X11_WINDOW_ICON="${CMAKE_SOURCE_DIR}/resources/icon_32x32.xpm")
 		target_link_libraries(${PROJECT_NAME}
 			Xaw95 X11::Xmu X11::Xt Xpm X11::X11 OpenGL::GL OpenGL::GLU
 			${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY} opentls crypto dl m
