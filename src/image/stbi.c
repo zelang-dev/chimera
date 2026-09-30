@@ -50,41 +50,15 @@ static void stbDestroy(void *pointer) {
 }
 
 static Image *newImage(void *imagedata, unsigned int width, unsigned int height) {
-	Image *image;
-	unsigned long datasize;
-
-	image = (Image *)malloc(sizeof(Image));
+	Image *image = (Image *)calloc(1, sizeof(Image));
 	if (!image)
 		return((Image *)0);
 
-	memset(image, 0, sizeof(Image));
 	image->type = ITRUE;
 	image->width = width;
 	image->height = height;
-	image->depth = 8;
-	image->pixlen = 24;
-	/* set bytes_per_line */
-	image->bytes_per_line = width * 3;
-	/* round bytes_per_line up to nearest longword */
-	image->bytes_per_line = ((image->bytes_per_line - 1) / sizeof(long)) + 1;
-	image->bytes_per_line *= sizeof(long);	/* Allocate a little too much memory, to allow overread */
-	datasize = image->bytes_per_line * height + 32;
-	image->data = (byte *)malloc(datasize);
-	if (!image->data) {
-		free((char *)image);
-		return ((Image *)0);
-	}
-
-	memset(image->data, 0, datasize);
-	if (imagedata) {
-		memcpy(image->data, imagedata, (width * height));
-		free(imagedata);
-	}
-
-	image->rgb.used = 0;
-	image->rgb.compressed = 0;
-	image->rgb.size = 2;
 	image->transparent = -1;
+	image->data = (byte *)imagedata;
 	return(image);
 }
 
@@ -133,33 +107,8 @@ toff_t mem_size(thandle_t handle) {
 int mem_map(thandle_t handle, tdata_t *data, toff_t *size) { return 0; }
 void mem_unmap(thandle_t handle, tdata_t data, toff_t size) {}
 
-/* Convert RGBA to BGRA in-place */
-void tiff_rgba_to_bgra(uint32_t *pixels, size_t count) {
-	size_t i;
-	for (i = 0; i < count; i++) {
-		uint32_t p = pixels[i];
-		uint8_t r = TIFFGetR(p);
-		uint8_t g = TIFFGetG(p);
-		uint8_t b = TIFFGetB(p);
-		uint8_t a = TIFFGetA(p);
-		pixels[i] = ((uint32_t)b << 24) | ((uint32_t)g << 16) | ((uint32_t)r << 8) | a;
-	}
-}
-
-// Convert RGBA to BGRA in-place
-static void rgba_to_bgra_inplace(uint8_t *pixels, size_t pixel_count) {
-	if (!pixels) return;
-	size_t i;
-	for (i = 0; i < pixel_count; i++) {
-		size_t idx = i * 4; // 4 bytes per pixel: R, G, B, A
-		uint8_t temp = pixels[idx];       // R
-		pixels[idx] = pixels[idx + 2];    // B -> R
-		pixels[idx + 2] = temp;           // R -> B
-	}
-}
-
 static int lf_read_image(stbState *stb, byte *data, int len) {
-	int x, y, comp, req_comp = 0;
+	int x, y, comp, req_comp = 4;
 	NSVGimage *shapes = NULL;
 	NSVGrasterizer *rast = NULL;
 	stbi_uc *image_data = NULL;
@@ -170,15 +119,18 @@ static int lf_read_image(stbState *stb, byte *data, int len) {
 	if (stbi_info_from_memory((const stbi_uc *)data, len, &x, &y, &comp)
 		&& (image_data = stbi_load_from_memory(data, len, &x, &y, &comp, req_comp))) {
 		stb->image = newImage(image_data, x, y);
-		if (stb->image) {
-			rgba_to_bgra_inplace(stb->image->data, (x * y));
-			if (stb->lineProc != NULL)
-				(stb->lineProc)(stb->closure, stb->ypos, stb->ypos);
-
-			stb->imagepos = stb->image->data;
-			stb->state = STB_FINISHED;
-			return STB_SUCCESS;
+		if (!stb->image) {
+			fprintf(stderr, "Memory allocation failed to load image: %s\n", stbi_failure_reason());
+			free(image_data);
+			stb->state = STB_FAILED;
+			return STB_ERROR;
 		}
+
+		if (stb->lineProc != NULL)
+			(stb->lineProc)(stb->closure, stb->xpos, stb->ypos);
+
+		stb->state = STB_FINISHED;
+		return STB_SUCCESS;
 	} else if ((shapes = nsvgParse(data, "px", 96.0f))) {
 		x = (int)shapes->width;
 		y = (int)shapes->height;
@@ -190,8 +142,8 @@ static int lf_read_image(stbState *stb, byte *data, int len) {
 			return STB_ERROR;
 		}
 
-		stb->image = newImage(NULL, x, y);
-		if (!stb->image) {
+		stb->image = newImage((malloc(x * y * 4)), x, y);
+		if (!stb->image || !stb->image->data) {
 			fprintf(stderr, "Memory allocation failed\n");
 			nsvgDeleteRasterizer(rast);
 			nsvgDelete(shapes);
@@ -202,11 +154,9 @@ static int lf_read_image(stbState *stb, byte *data, int len) {
 		nsvgRasterize(rast, shapes, 0, 0, 1.0f, stb->image->data, x, y, x * 4);
 		nsvgDeleteRasterizer(rast);
 		nsvgDelete(shapes);
-		rgba_to_bgra_inplace(stb->image->data, (x * y));
 		if (stb->lineProc != NULL)
-			(stb->lineProc)(stb->closure, stb->ypos, stb->ypos);
+			(stb->lineProc)(stb->closure, stb->xpos, stb->ypos);
 
-		stb->imagepos = stb->image->data;
 		stb->state = STB_FINISHED;
 		return STB_SUCCESS;
 	} else if ((tif = TIFFClientOpen("MemTIFF", "r", (thandle_t)&data, mem_read,
@@ -215,8 +165,8 @@ static int lf_read_image(stbState *stb, byte *data, int len) {
 		TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
 		TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
 
-		stb->image = newImage(NULL, width, height);
-		if (!stb->image) {
+		stb->image = newImage(_TIFFmalloc(width * height * sizeof(uint32_t)), width, height);
+		if (!stb->image || !stb->image->data) {
 			fprintf(stderr, "Raster/memory allocation failed\n");
 			TIFFClose(tif);
 			stb->state = STB_FAILED;
@@ -234,10 +184,8 @@ static int lf_read_image(stbState *stb, byte *data, int len) {
 			return STB_ERROR;
 		}
 
-		tiff_rgba_to_bgra((uint32_t *)stb->image->data, (width * height));
-		stb->imagepos = stb->image->data;
 		if (stb->lineProc != NULL)
-			(stb->lineProc)(stb->closure, stb->ypos, stb->ypos);
+			(stb->lineProc)(stb->closure, stb->xpos, stb->ypos);
 
 		stb->state = STB_FINISHED;
 		return STB_SUCCESS;

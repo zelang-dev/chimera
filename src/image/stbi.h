@@ -22,10 +22,8 @@ typedef struct stb_State
 
   Image *image;
 
-  int   pos;               /* current read position */
   int   ypos;              /* current line */
   int   xpos;              /* current pixel */
-  byte *imagepos;          /* current posn. in output */
 } stbState;
 
 /*

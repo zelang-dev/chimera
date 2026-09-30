@@ -37,10 +37,7 @@ typedef int (*AddDataProc) _ArgProto((void *image_format_closure,
 
 typedef Image *(*GetImageProc) _ArgProto((void *image_format_closure));
 
-InitProcDecl gifInit;
 InitProcDecl xbmInit;
-InitProcDecl pnmInit;
-InitProcDecl jpegInit;
 InitProcDecl stbInit;
 
 struct ifs_vector {

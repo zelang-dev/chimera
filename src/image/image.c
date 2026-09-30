@@ -66,10 +66,19 @@ static struct content_map {
 {
   { "image/gif", IMAGE_GIF },
   { "image/xbm", IMAGE_XBM },
+  { "image/bmp", IMAGE_BMP },
+  { "image/hdr", IMAGE_HDR },
+  { "image/pic", IMAGE_PIC },
+  { "image/tga", IMAGE_TGA },
+  { "image/psd", IMAGE_PSD },
   { "image/pnm", IMAGE_PNM },
   { "image/jpeg", IMAGE_JPEG },
   { "image/x-png", IMAGE_PNG },
   { "image/png", IMAGE_PNG },
+  { "image/x-svg", IMAGE_SVG},
+  { "image/svg", IMAGE_SVG},
+  { "image/x-tif", IMAGE_TIFF},
+  { "image/tiff", IMAGE_TIFF},
   { "image/x-xbitmap", IMAGE_XBM },
   { "image/x-portable-anymap", IMAGE_PNM },
   { "image/x-portable-bitmap", IMAGE_PNM },
@@ -104,6 +113,7 @@ typedef struct imagestate {
 	int free_dither_table;            /* How many tables were allocated (0-4) */
 	ddt_dither_fn dither_function;    /* Function to dither/convert with */
 	bool dithering;
+	bool bypassing; 				  /* using either `stb_image.h`, `nanosvg.h` or `libtiff` */
 
 	struct ifs_vector if_vector;      /* Image format decoder info */
 
@@ -731,6 +741,77 @@ void SetSize(ImageState *is) {
 	return;
 }
 
+// Blend RGBA pixel onto white background
+static inline void blend_onwhite(unsigned char *dst, unsigned char *src) {
+	unsigned char r = src[0];
+	unsigned char g = src[1];
+	unsigned char b = src[2];
+	unsigned char a = src[3];
+
+	// Alpha blending onto white background
+	dst[0] = (r * a + 255 * (255 - a)) / 255;
+	dst[1] = (g * a + 255 * (255 - a)) / 255;
+	dst[2] = (b * a + 255 * (255 - a)) / 255;
+}
+
+static void draw_image(ImageState *on, Drawable d, GC gc, int x, int y, unsigned char *_image, int width, int height) {
+	int i, j, depth = on->depth;
+	int bitmap_pad = XBitmapPad(on->dpy);
+	int format = depth == 1 ? XYBitmap : ZPixmap;
+	int offset = 0;
+	int bytes_per_line = 0;
+
+	on->xi = XCreateImage(on->dpy, on->v, on->depth, format, offset, NULL,
+		width, height, bitmap_pad, bytes_per_line);
+	if (!on->xi) {
+		fprintf(stderr, "Failed to create XImage.\n");
+		return;
+	}
+
+	on->xi->data = malloc(on->xi->bytes_per_line * height);
+	if (!on->xi->data) {
+		fprintf(stderr, "Memory allocation failed.\n");
+		XDestroyImage(on->xi);
+		return;
+	}
+
+	// Fill XImage pixels
+	for (i = 0; i < height; i++) {
+		for (j = 0; j < width; j++) {
+			unsigned char rgb[3];
+			blend_onwhite(rgb, _image + (i * width + j) * 4);
+			unsigned long pixel = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+			XPutPixel(on->xi, j, i, pixel);
+		}
+	}
+
+	if (depth != 1)
+		XAddPixel(on->xi, on->bgcolor.pixel);
+
+#ifdef CHIMERA_LITTLE_ENDIAN
+	on->xi->byte_order = on->xi->bitmap_bit_order = LSBFirst;
+#else
+	on->xi->byte_order = on->xi->bitmap_bit_order = MSBFirst;
+#endif
+
+	if (on->xi->depth == 1) {
+		XSetForeground(on->dpy, gc, on->fg);
+		XSetBackground(on->dpy, gc, on->bg);
+	}
+
+	XPutImage(on->dpy, d, gc, on->xi, 0, 0, x, y, width, height);
+}
+
+static void MemoryToXImage(void *pointer, int x, int y) {
+	ImageState *is = (ImageState *)pointer;
+	ImageClass *ic = is->ic;
+	Image *image = lf_get_image(is);
+	is->bypassing = true;
+	draw_image(is, is->win, ic->gc, x, y, image->data, image->width, image->height);
+	is->last_line = image->height;
+	XSync(is->dpy, 0);
+}
+
 static void ImageToXImage(void *pointer, int fline, int lline) {
 	ImageState *is = (ImageState *)pointer;
 	ImageClass *ic = is->ic;
@@ -740,6 +821,7 @@ static void ImageToXImage(void *pointer, int fline, int lline) {
 	int line;
 	Image *image = lf_get_image(is);
 	int image_type = image->type;
+	is->bypassing = false;
 
 	/*
 	 * First time
@@ -907,7 +989,9 @@ void *closure;
 		is->if_vector.image_format_closure = NULL;
 	}
 	if (is->xi) {
-		is->xi->data = NULL;
+		if (!is->bypassing)
+			is->xi->data = NULL;
+
 		XDestroyImage(is->xi);
 		is->xi = 0;
 	}
@@ -976,11 +1060,18 @@ void *ImageInit(ChimeraRender wn, void *class_closure, void *state) {
 	is->bgcolor.pixel = GUIBackgroundPixel(wd);
 	XQueryColor(is->dpy, is->cmap, &(is->bgcolor));
 
-	if (format == IMAGE_GIF) gifInit(ImageToXImage, is, &is->if_vector);
-	else if (format == IMAGE_PNM) pnmInit(ImageToXImage, is, &is->if_vector);
+	if (format == IMAGE_GIF) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_PNM) stbInit(MemoryToXImage, is, &is->if_vector);
 	else if (format == IMAGE_XBM) xbmInit(ImageToXImage, is, &is->if_vector);
-	else if (format == IMAGE_JPEG) jpegInit(ImageToXImage, is, &is->if_vector);
-	//else if (format == IMAGE_PNG) pngInit(ImageToXImage, is, &is->if_vector);
+	else if (format == IMAGE_JPEG) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_PNG) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_SVG) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_BMP) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_PIC) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_TGA) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_PSD) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_HDR) stbInit(MemoryToXImage, is, &is->if_vector);
+	else if (format == IMAGE_TIFF) stbInit(MemoryToXImage, is, &is->if_vector);
 
 	ic->icount++;
 

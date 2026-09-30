@@ -94,8 +94,6 @@ else()
 	endif()
 
 	find_package(TIFF REQUIRED)
-	find_package(PNG REQUIRED)
-	find_package(JPEG REQUIRED)
 	find_package(X11 REQUIRED COMPONENTS Xmu Xt)
 	find_package(OpenGL REQUIRED COMPONENTS GLX)
 	if(BUILD_NATIVE_XAW)
@@ -126,12 +124,12 @@ else()
 		target_link_libraries(${PROJECT_NAME}
 			Xaw X11::Xmu X11::Xt Xpm X11::X11 OpenGL::GL OpenGL::GLU
 			${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY} opentls crypto dl m
-			TIFF::TIFF PNG::PNG JPEG::JPEG)
+			TIFF::TIFF)
 	else()
 		target_link_libraries(${PROJECT_NAME}
 			Xaw95 X11::Xmu X11::Xt Xpm X11::X11 OpenGL::GL OpenGL::GLU
 			${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY} opentls crypto dl m
-			TIFF::TIFF PNG::PNG JPEG::JPEG)
+			TIFF::TIFF)
 	endif(BUILD_NATIVE_XAW)
 endif()
 

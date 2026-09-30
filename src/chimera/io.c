@@ -60,6 +60,8 @@ struct ChimeraStreamP {
 	bool                  destroyed;
 	MemPool               mp;
 	ChimeraResources      cres;
+	struct tls			*tls;
+	struct tls_config	*tls_config;
 	int                   s;
 	int                   as;
 	unsigned long         addr;
@@ -223,12 +225,7 @@ void *closure;
 /*
  * StreamCreateINet
  */
-ChimeraStream
-StreamCreateINet(cres, host, port)
-ChimeraResources cres;
-char *host;
-int port;
-{
+ChimeraStream StreamCreateINet(ChimeraResources cres, char *host, int port) {
 	ChimeraStream ps;
 	int s;
 	int rval;

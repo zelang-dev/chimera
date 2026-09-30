@@ -22,6 +22,7 @@
 
 #include "common.h"
 #include "url.h"
+#include <tls.h>
 
 typedef struct ChimeraResourcesP   *ChimeraResources;
 typedef struct ChimeraContextP     *ChimeraContext;
