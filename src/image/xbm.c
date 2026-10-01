@@ -315,13 +315,7 @@ lf_read_image(
  * Assumes data is the address of the beginning of the xbm data and len
  * is the total length.
  */
-static int
-xbmAddData(pointer, data, len, data_ended)
-void *pointer;
-byte *data;
-int len;
-bool data_ended;
-{
+static int xbmAddData(void *pointer, byte *data, int len, bool data_ended) {
   xbmState *xbm = (xbmState *)pointer;
   int rval;
 

@@ -25,15 +25,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <X11/Intrinsic.h>
-#include <X11/StringDefs.h>
-#include <X11/Shell.h>
-
-#include <X11/Xaw/Label.h>
-#include <X11/Xaw/List.h>
-#include <X11/Xaw/Form.h>
-#include <X11/Xaw/Command.h>
-#include <X11/Xaw/Viewport.h>
+#include <athena.h>
 
 
 #include "ChimeraP.h"
@@ -115,7 +107,7 @@ BookmarkContext bc;
 		bc->gnames[cnt++] = g->name;
 	}
 	bc->gnames[cnt] = NULL;
-	XawListChange(bc->glw, (const char **)bc->gnames, 0, 0, True);
+	XawListChange(bc->glw, (char **)bc->gnames, 0, 0, True);
 	if (cnt > 0) XawListHighlight(bc->glw, 0);
 
 	BMChangeMarkList(bc);
@@ -153,12 +145,12 @@ BookmarkContext bc;
 	}
 	if (cnt > 0) {
 		bc->mnames[cnt] = NULL;
-		XawListChange(bc->mlw, (const char **)bc->mnames, 0, 0, True);
+		XawListChange(bc->mlw, (char **)bc->mnames, 0, 0, True);
 		XawListHighlight(bc->mlw, 0);
 	} else {
 		bc->mnames[cnt] = "";
 		bc->mnames[cnt + 1] = NULL;
-		XawListChange(bc->mlw, (const char **)bc->mnames, 0, 0, True);
+		XawListChange(bc->mlw, (char **)bc->mnames, 0, 0, True);
 	}
 
 	return;

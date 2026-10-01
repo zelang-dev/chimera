@@ -27,7 +27,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SHARED_LIBS "Build the library as a shared (dynamically-linked) " OFF)
-option(BUILD_NATIVE_XAW "Linux: Build using Native X11 Athena Widget Toolkit " ON)
+option(BUILD_NATIVE_XAW "Linux: Build using Native X11 Athena Widget Toolkit " OFF)
 
 if (WIN32 OR APPLE)
     message(FATAL_ERROR "Linux Only!")
@@ -53,9 +53,18 @@ else()
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -rdynamic -no-pie -D USE_DEBUG")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format -fno-strict-aliasing -D NeedFunctionPrototypes")
 
+	find_package(athena QUIET)
+	if(NOT athena_FOUND)
+		FetchContent_Declare(athena
+			URL https://github.com/zelang-dev/athena/archive/refs/heads/main.zip
+			#URL https://github.com/zelang-dev/athena/archive/refs/tags/v0.5.0.zip
+			#URL_MD5 6e9756dee0ef5903d850dc021d5df725
+		)
+		FetchContent_MakeAvailable(athena)
+	endif()
+	include_directories(${athena_SOURCE_DIR}/include)
 	file(GLOB app_files
 		${CMAKE_CURRENT_SOURCE_DIR}/src/chimera/*.c)
-
 	file(GLOB proto_files
 		${CMAKE_CURRENT_SOURCE_DIR}/src/proto/*.c)
 	file(GLOB plain_files
@@ -80,57 +89,13 @@ else()
 		${proto_files} ${plain_files} ${mxw_files} ${image_files}
 		${html_files} ${ext_files} ${common_files})
 	endif()
+	if(BUILD_NATIVE_XAW)
+		target_compile_definitions(${PROJECT_NAME} PUBLIC NATIVE_XAW=1)
+	endif()
 	target_include_directories(${PROJECT_NAME}
 		PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-
-	find_package(opentls QUIET)
-	if(NOT opentls_FOUND)
-		FetchContent_Declare(opentls
-			URL https://github.com/zelang-dev/opentls/archive/refs/heads/main.zip
-			URL_MD5 b670326e488f0911aabd7dec311a4ceb
-		)
-		FetchContent_MakeAvailable(opentls)
-	endif()
-
-	find_package(TIFF REQUIRED)
-	find_package(X11 REQUIRED COMPONENTS Xmu Xt)
-	find_package(OpenGL REQUIRED COMPONENTS GLX)
-	if(BUILD_NATIVE_XAW)
-		find_library(X11_Xaw_LIB Xaw)
-	else()
-		##file(GLOB Xaw95_files
-		#	${CMAKE_CURRENT_SOURCE_DIR}/src/Linux/Xaw95/*.c)
-		if(BUILD_SHARED_LIBS)
-		#	add_library(Xaw95 SHARED ${Xaw95_files})
-		else()
-		#	add_library(Xaw95 STATIC ${Xaw95_files})
-		endif()
-		#target_include_directories(Xaw95
-			#	PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-			#	PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-	endif(BUILD_NATIVE_XAW)
-
-	target_include_directories(${PROJECT_NAME}
-		PRIVATE $<BUILD_INTERFACE:${OPENSSL_INCLUDE_DIR}
-		$<INSTALL_INTERFACE:${OPENSSL_INCLUDE_DIR})
-
-	target_include_directories(${PROJECT_NAME}
-		PRIVATE $<BUILD_INTERFACE:${TIFF_INCLUDE_DIRS}
-		$<INSTALL_INTERFACE:${TIFF_INCLUDE_DIRS})
-
-	if(BUILD_NATIVE_XAW)
-		target_compile_definitions(${PROJECT_NAME} PUBLIC NATIVE_XAW=1)
-		target_link_libraries(${PROJECT_NAME}
-			Xaw X11::Xmu X11::Xt Xpm X11::X11 OpenGL::GL OpenGL::GLU
-			${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY} opentls crypto dl m
-			TIFF::TIFF)
-	else()
-		target_link_libraries(${PROJECT_NAME}
-			Xaw95 X11::Xmu X11::Xt Xpm X11::X11 OpenGL::GL OpenGL::GLU
-			${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY} opentls crypto dl m
-			TIFF::TIFF)
-	endif(BUILD_NATIVE_XAW)
+	target_link_libraries(${PROJECT_NAME} PUBLIC ATHENA::WIDGETS)
 endif()
 
 add_library(CHIMERA::WEB ALIAS ${PROJECT_NAME})

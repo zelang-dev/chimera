@@ -66,7 +66,7 @@ possible resources file:
 bookmark.filename: ~/.chimera/bookmarks.html
 cache.directory: ~/.chimera/cache
 cache.persist: true
-chimera.homeURL: http://www/
+chimera.homeURL: http://www.google.com
 html.propFontPattern: -adobe-helvetica-*-*-*-*-*-*-*-*-*-*-iso8859-1
 view.capFiles: ~/.chimera/mailcap:~/.mailcap
 

@@ -25,6 +25,7 @@
 #include <stddef.h>
 #include <limits.h>
 #include <string.h>
+#include <stdbool.h>
 
 #ifdef __QNX__
 #define strcasecmp(s1, s2) stricmp(s1, s2)
@@ -63,10 +64,10 @@
  */
 #ifndef __cplusplus
 
-#if !defined(bool_DEFINED) && !defined(true_DEFINED) && !defined(false_DEFINED)
 #define bool_DEFINED 1
 #define true_DEFINED 1
 #define false_DEFINED 1
+#if !defined(bool_DEFINED) && !defined(true_DEFINED) && !defined(false_DEFINED)
 typedef enum {
 	false = 0,
 	true = 1

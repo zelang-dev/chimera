@@ -24,19 +24,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include <X11/Intrinsic.h>
-#include <X11/StringDefs.h>
-#include <X11/Shell.h>
-
-#include <X11/Xaw/Form.h>
-#include <X11/Xaw/Paned.h>
-#include <X11/Xaw/Box.h>
-#include <X11/Xaw/Command.h>
-#include <X11/Xaw/Toggle.h>
-#include <X11/Xaw/Label.h>
-
-
-#include "TextField.h"
+#include <athena.h>
 
 #include "common.h"
 
@@ -79,29 +67,24 @@ static struct ButtonTable {
 	char *accel;
 } ButtonTable[] =
 {
-  { "quit",     False, NULL, Quit,     ":Meta<KeyUp>q"},
-  { "open",	False, NULL, Open,     ":Meta<KeyUp>o" },
-  { "home",	False, NULL, Home,     ":Meta<KeyUp>h" },
-  { "back",	False, NULL, Back,     ":Meta<KeyUp>b" },
-  { "reload",   False, NULL, Reload,   ":Meta<KeyUp>r" },
-  { "cancel",   False, NULL, Cancel,   ":Meta<KeyUp>c"},
-  { "dup",	False, NULL, Dup,      ":Meta<KeyUp>c" },
-  { "help",	False, NULL, Help,     ":Meta<KeyUp>H" },
-  { "addmark",	False, NULL, AddMark,  ":Meta<KeyUp>a" },
-  { "viewmark", False, NULL, ViewMark, ":Meta<KeyUp>v" },
-  { "bookmark", False, NULL, Bookmark, ":Meta<KeyUp>m" },
-  { "find",     False, NULL, Find,     ":Meta<KeyUp>f" },
-  { "source",   True,  NULL, Source,   ":Meta<KeyUp>s" },
-  { "save",     False, NULL, Save,     ":Meta<KeyUp>S" },
-  { NULL,       False, NULL, NULL,     NULL},
+  {"quit",     False, NULL, Quit,     ":Meta<KeyUp>q"},
+  {"open",	False, NULL, Open,     ":Meta<KeyUp>o"},
+  {"home",	False, NULL, Home,     ":Meta<KeyUp>h"},
+  {"back",	False, NULL, Back,     ":Meta<KeyUp>b"},
+  {"reload",   False, NULL, Reload,   ":Meta<KeyUp>r"},
+  {"cancel",   False, NULL, Cancel,   ":Meta<KeyUp>c"},
+  {"dup",	False, NULL, Dup,      ":Meta<KeyUp>c"},
+  {"help",	False, NULL, Help,     ":Meta<KeyUp>H"},
+  {"addmark",	False, NULL, AddMark,  ":Meta<KeyUp>a"},
+  {"viewmark", False, NULL, ViewMark, ":Meta<KeyUp>v"},
+  {"bookmark", False, NULL, Bookmark, ":Meta<KeyUp>m"},
+  {"find",     False, NULL, Find,     ":Meta<KeyUp>f"},
+  {"source",   True,  NULL, Source,   ":Meta<KeyUp>s"},
+  {"save",     False, NULL, Save,     ":Meta<KeyUp>S"},
+  {NULL,       False, NULL, NULL,     NULL},
 };
 
-static void
-AddButtons(wc, box, list)
-ChimeraContext wc;
-Widget box;
-char *list;
-{
+static void AddButtons(ChimeraContext wc, Widget box, char *list) {
 	char name[256];
 	struct ButtonTable *btp;
 	char accel[256];
@@ -164,10 +147,7 @@ char *list;
 /*
  * InstallAccelerators
  */
-static void
-InstallAccelerators(w)
-Widget w;
-{
+static void InstallAccelerators(Widget w) {
 	struct ButtonTable *btp;
 
 	for (btp = &ButtonTable[0]; btp->name != NULL; btp++)
@@ -183,10 +163,10 @@ Widget w;
 #define offset(field) XtOffset(ChimeraContext, field)
 static XtResource       resource_list[] =
 {
-  { "button1Box", "BoxList", XtRString, sizeof(char *),
-		offset(button1Box), XtRString, BUTTON_LIST },
-  { "button2Box", "BoxList", XtRString, sizeof(char *),
-		offset(button2Box), XtRString, NULL },
+  {"button1Box", "BoxList", XtRString, sizeof(char *),
+		offset(button1Box), XtRString, BUTTON_LIST},
+  {"button2Box", "BoxList", XtRString, sizeof(char *),
+		offset(button2Box), XtRString, NULL},
 };
 
 /*
@@ -194,11 +174,7 @@ static XtResource       resource_list[] =
  *
  * Setup chimera in a widget.
  */
-static void
-CreateWidgets(wc, name)
-ChimeraContext wc;
-char *name;
-{
+static void CreateWidgets(ChimeraContext wc, char *name) {
 	Widget paned, box, form;
 	Atom delete;
 
@@ -277,10 +253,7 @@ char *name;
 /*
  * HeadDestroy
  */
-void
-HeadDestroy(wc)
-ChimeraContext wc;
-{
+void HeadDestroy(ChimeraContext wc) {
 	StackDestroy(wc->tstack);
 	GListRemoveItem(wc->cres->heads, wc);
 	XtDestroyWidget(wc->toplevel);
@@ -294,11 +267,7 @@ ChimeraContext wc;
 /*
  * ClearDialogValue
  */
-static void
-ClearDialogValue(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void ClearDialogValue(Widget w, XtPointer cldata, XtPointer cbdata) {
 	if ((w = XtParent(w)) != NULL) MyDialogSetValue(w, "");
 
 	return;
@@ -307,15 +276,8 @@ XtPointer cldata, cbdata;
 /*
  * CreateDialog
  */
-Widget
-CreateDialog(p, name, ofunc, dfunc, rfunc, closure)
-Widget p;
-char *name;
-void (*ofunc)();
-void (*dfunc)();
-void (*rfunc)();
-XtPointer closure;
-{
+Widget CreateDialog(Widget p, char *name, void (*ofunc)(), void (*dfunc)(),
+	void (*rfunc)(), XtPointer closure) {
 	Widget w, dw;
 	Window rw, cw;
 	int rx, ry, wx, wy;
@@ -348,21 +310,14 @@ XtPointer closure;
 /*
  * GetDialogWidget
  */
-Widget
-GetDialogWidget(w)
-Widget w;
-{
+Widget GetDialogWidget(Widget w) {
 	return(XtNameToWidget(w, "dialog"));
 }
 
 /*
  * OOpen
  */
-static void
-OOpen(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void OOpen(Widget ww, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	char *url;
 
@@ -377,11 +332,7 @@ XtPointer cldata, cbdata;
 /*
  * DOpen
  */
-static void
-DOpen(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void DOpen(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	XtPopdown(wc->openpop);
 	return;
@@ -390,11 +341,7 @@ XtPointer cldata, cbdata;
 /*
  * Open
  */
-static void
-Open(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Open(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 
 	if (wc->openpop == NULL) {
@@ -409,11 +356,7 @@ XtPointer cldata, cbdata;
 /*
  * Back
  */
-static void
-Back(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Back(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	StackBack(wc->tstack);
 	return;
@@ -422,11 +365,7 @@ XtPointer cldata, cbdata;
 /*
  * Reload
  */
-static void
-Reload(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Reload(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	StackReload(wc->tstack);
 	return;
@@ -436,10 +375,7 @@ XtPointer cldata, cbdata;
  * Cancel
  */
 static void
-Cancel(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+Cancel(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	StackCancel(wc->tstack);
 	return;
@@ -448,11 +384,7 @@ XtPointer cldata, cbdata;
 /*
  * Quit
  */
-static void
-Quit(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Quit(Widget w, XtPointer cldata, XtPointer cbdata) {
 	HeadDestroy((ChimeraContext)cldata);
 	return;
 }
@@ -460,11 +392,7 @@ XtPointer cldata, cbdata;
 /*
  * Source
  */
-static void
-Source(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Source(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 
 	if (wc->cres->plainhooks == NULL) XtVaSetValues(w, XtNstate, False, NULL);
@@ -480,11 +408,7 @@ XtPointer cldata, cbdata;
 /*
  * Save
  */
-static void
-Save(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Save(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	char *url;
 	ChimeraRequest *wr;
@@ -503,11 +427,7 @@ XtPointer cldata, cbdata;
 /*
  * Home
  */
-static void
-Home(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Home(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	StackHome(wc->tstack);
 	return;
@@ -516,11 +436,7 @@ XtPointer cldata, cbdata;
 /*
  * Help
  */
-static void
-Help(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Help(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	char *url;
 
@@ -534,11 +450,7 @@ XtPointer cldata, cbdata;
 /*
  * Dup
  */
-static void
-Dup(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Dup(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	char *url;
 	ChimeraRequest *wr;
@@ -559,11 +471,7 @@ XtPointer cldata, cbdata;
 /*
  * AddMark
  */
-void
-AddMark(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+void AddMark(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	char *title;
 	char *url;
@@ -583,11 +491,7 @@ XtPointer cldata, cbdata;
 /*
  * ViewMark
  */
-void
-ViewMark(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+void ViewMark(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	MemPool mp;
 	char *filename;
@@ -613,11 +517,7 @@ XtPointer cldata, cbdata;
 /*
  * Bookmark
  */
-static void
-Bookmark(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void Bookmark(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 
 	wc->cres->bmcontext = wc;
@@ -629,11 +529,7 @@ XtPointer cldata, cbdata;
 /*
  * OFind
  */
-static void
-OFind(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void OFind(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	char *str;
 
@@ -651,11 +547,7 @@ XtPointer cldata, cbdata;
 /*
  * DFind
  */
-static void
-DFind(w, cldata, cbdata)
-Widget w;
-XtPointer cldata, cbdata;
-{
+static void DFind(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	XtPopdown(wc->findpop);
 	return;

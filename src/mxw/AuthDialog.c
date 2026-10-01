@@ -30,13 +30,13 @@ Copyright 1987, 1988 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -58,12 +58,7 @@ SOFTWARE.
 #include <X11/StringDefs.h>
 #include <X11/Xmu/Misc.h>
 
-#include <X11/Xaw/XawInit.h>
-#include <X11/Xaw/Command.h>	
-#include <X11/Xaw/Label.h>
-#include <X11/Xaw/Cardinals.h>
-
-#include "TextField.h"
+#include <athena.h>
 
 #include "AuthDialogP.h"
 
@@ -83,7 +78,7 @@ static XtResource resources[] = {
        XtOffsetOf(AuthDialogRec, authdialog.username), XtRString, NULL },
   { XtNicon, XtCIcon, XtRBitmap, sizeof(Pixmap),
        XtOffsetOf(AuthDialogRec, authdialog.icon), XtRImmediate, 0 },
-  { XtNcallback, XtCCallback, XtRCallback, sizeof(XtPointer), 
+  { XtNcallback, XtCCallback, XtRCallback, sizeof(XtPointer),
        XtOffsetOf(AuthDialogRec, authdialog.callbacks),XtRCallback, NULL },
 };
 
@@ -314,7 +309,7 @@ static void
 CreateAuthDialogFields(w)
 Widget w;
 {
-    AuthDialogWidget dw = (AuthDialogWidget) w;    
+    AuthDialogWidget dw = (AuthDialogWidget) w;
 
     dw->authdialog.usernameW =
 	XtVaCreateWidget("username",
@@ -361,7 +356,7 @@ Widget w;
     XtManageChild(dw->authdialog.usernameW);
     XtManageChild(dw->authdialog.passwordW);
 
-/* 
+/*
  * Value widget gets the keyboard focus.
  */
 
@@ -387,7 +382,7 @@ XtPointer param;
  */
     Widget button;
 
-    button = XtCreateManagedWidget( name, commandWidgetClass, authdialog, 
+    button = XtCreateManagedWidget( name, commandWidgetClass, authdialog,
 				    (ArgList)NULL, (Cardinal)0 );
 
     if (function != NULL)	/* don't add NULL callback func. */

@@ -23,14 +23,8 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <athena.h>
 
-#include <X11/Intrinsic.h>
-#include <X11/StringDefs.h>
-#include <X11/Shell.h>
-#include <X11/Xaw/Toggle.h>
-
-
-#include "TextField.h"
 #include "MyDialog.h"
 
 #include "ChimeraP.h"
@@ -45,6 +39,12 @@ static void ResourcesDestroy _ArgProto((ChimeraResources));
 extern char *fallback_resources[];
 
 static ChimeraResources globalcres;
+static char *default_resource = "bookmark.filename: ~/.chimera/bookmarks.html\n"
+"cache.directory: ~/.chimera/cache\n"
+"cache.persist: true\n"
+"chimera.homeURL: http://www.google.com\n"
+"html.propFontPattern: -adobe-helvetica-*-*-*-*-*-*-*-*-*-*-iso8859-1\n"
+"view.capFiles: ~/.chimera/mailcap:~/.mailcap\n";
 
 int main(int argc, char **argv) {
 	char base_url[255];
@@ -191,6 +191,8 @@ ChimeraResources ResourcesCreate(int *argcp, char **argv) {
 	char *f, *filename;
 	char *logfile;
 	char *dbfiles;
+	char db[1024], *p;
+	struct stat s;
 
 	mp = MPCreate();
 	cres = (ChimeraResources)MPCGet(mp, sizeof(struct ChimeraResourcesP));
@@ -212,6 +214,20 @@ ChimeraResources ResourcesCreate(int *argcp, char **argv) {
 
 	if ((dbfiles = getenv("CHIMERA_DBFILES")) == NULL) {
 		dbfiles = "~/.chimera/resources";
+		if (!(p = getenv("HOME")))
+			p = "/tmp";
+
+		sprintf(db, "%s/.chimera", p);
+		mkdir(db, 0700);
+		strcat(db, "/resources");
+		if (stat(db, &s) != 0) {
+			FILE *dbf = fopen(db, "w");
+			if (dbf) {
+				fprintf(dbf, "%s", default_resource);
+				fflush(dbf);
+				fclose(dbf);
+			}
+		}
 	}
 
 	f = dbfiles;

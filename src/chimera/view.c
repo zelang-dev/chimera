@@ -23,16 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <X11/Intrinsic.h>
-#include <X11/StringDefs.h>
-#include <X11/Shell.h>
-#include <X11/Xaw/Box.h>
-#include <X11/Xaw/Command.h>
-#include <X11/Xaw/Paned.h>
-
-
-#include "TextField.h"
-
+#include <athena.h>
 #include "ChimeraP.h"
 
 typedef struct

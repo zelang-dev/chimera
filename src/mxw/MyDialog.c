@@ -30,13 +30,13 @@ Copyright 1987, 1988 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -58,11 +58,7 @@ SOFTWARE.
 #include <X11/StringDefs.h>
 #include <X11/Xmu/Misc.h>
 
-#include <X11/Xaw/XawInit.h>
-#include <X11/Xaw/Command.h>	
-#include <X11/Xaw/Cardinals.h>
-
-#include "TextField.h"
+#include <athena.h>
 
 #include "MyDialogP.h"
 
@@ -73,7 +69,7 @@ static char defaultTranslations[] =
 static XtResource resources[] = {
   { XtNlabel, XtCLabel, XtRString, sizeof(String),
        XtOffsetOf(MyDialogRec, mydialog.label), XtRString, NULL },
-  {XtNcallback, XtCCallback, XtRCallback, sizeof(XtPointer), 
+  {XtNcallback, XtCCallback, XtRCallback, sizeof(XtPointer),
      XtOffsetOf(MyDialogRec, mydialog.callbacks),XtRCallback,(XtPointer)NULL},
 };
 
@@ -195,12 +191,12 @@ Cardinal *num_args;
 	}
       }
     }
-    
+
     XtOverrideTranslations(dw->mydialog.valueW,
                            XtParseTranslationTable(defaultTranslations));
-    
+
     XtManageChild(dw->mydialog.valueW);
-    
+
     XtSetKeyboardFocus(new, dw->mydialog.valueW);
   }
 

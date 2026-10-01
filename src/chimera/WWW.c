@@ -51,9 +51,7 @@ in this Software without prior written authorization from the X Consortium.
 #include <stdlib.h>
 
 #include "common.h"
-#include <X11/IntrinsicP.h>
-#include <X11/StringDefs.h>
-#include <X11/Xaw/Scrollbar.h>
+#include <athena.h>
 
 #include <X11/keysym.h>
 
