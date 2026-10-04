@@ -4,21 +4,14 @@
 
 #include "image_format.h"
 
-// Structure to hold streamed data for stb_image
-typedef struct {
-	unsigned char *data;
-	size_t size;
-	size_t offset;
-} MemoryStream;
-
 /*
  * stbState
  */
 typedef struct stb_State
 {
-  int state;               /* state of STB reader */
-  FormatLineProc lineProc; /* line callback */
-  void *closure;           /* closure for callback */
+	int state;				/* state of `stb/tiff/nanosvg` reader */
+  FormatLineProc lineProc; 	/* line callback */
+  void *closure;			/* closure for callback */
 
   Image *image;
 
@@ -27,14 +20,14 @@ typedef struct stb_State
 } stbState;
 
 /*
- * state of stb reader
+ * state of `stb/tiff/nanosvg` reader
  */
 #define STB_FINISHED 0
 #define STB_READ_IMAGE 1
 #define STB_FAILED 2
 
 /*
- * return values from stb processing fns
+ * return values from `stb/tiff/nanosvg` processing fns
  */
 #define STB_ERROR 0
 #define STB_SUCCESS 1

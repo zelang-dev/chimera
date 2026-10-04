@@ -54,6 +54,7 @@ in this Software without prior written authorization from the X Consortium.
 #include <athena.h>
 
 #include <X11/keysym.h>
+#include <Xaw95/TraversalP.h>
 
 
 #include "WWWP.h"
@@ -136,10 +137,10 @@ static XtActionsRec actionsList[] =
 static XtResource resources[] =
 {
   { XtNbackground, XtCBackground, XtRPixel, sizeof(Pixel),
-	offset(background), XtRString, (XtPointer)"moccasin" },
+	offset(background), XtRString, XtDefaultBackground},
 
   { XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
-	offset(foreground), XtRString, (XtPointer)"black" },
+	offset(foreground), XtRString, XtDefaultForeground},
 };
 #undef offset
 
@@ -195,7 +196,7 @@ WWWClassRec wwwClassRec =
     /* set_values_hook    */    NULL,
     /* set_values_almost  */    XtInheritSetValuesAlmost,
     /* get_values_hook    */    WWWGetValuesHook,
-    /* accept_focus       */    NULL,
+	/* accept_focus       */    XawAcceptFocus,
     /* version            */    XtVersion,
     /* callback_private   */    NULL,
     /* tm_table           */    NULL,
@@ -458,7 +459,6 @@ Cardinal *count;
    */
   new->www.vert_bar = XtVaCreateWidget("vert_bar",
 				       scrollbarWidgetClass, n,
-				       XtNorientation, XtorientVertical,
 				       XtNmappedWhenManaged, False,
 				       NULL);
   XtManageChild(new->www.vert_bar);
@@ -470,7 +470,6 @@ Cardinal *count;
 
   new->www.horiz_bar = XtVaCreateWidget("horiz_bar",
 					scrollbarWidgetClass, n,
-					XtNorientation, XtorientHorizontal,
 					XtNmappedWhenManaged, False,
 					NULL);
   XtManageChild(new->www.horiz_bar);

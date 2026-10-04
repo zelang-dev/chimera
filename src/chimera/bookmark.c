@@ -25,9 +25,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <athena.h>
-
-
 #include "ChimeraP.h"
 #include "ml.h"
 
@@ -373,7 +370,7 @@ BookmarkShow(bc)
 BookmarkContext bc;
 {
 	XtMapWidget(bc->bw);
-	return;
+	MwSetIcon(bc->bw, icon_32x32);
 }
 
 /*
@@ -479,6 +476,7 @@ XtPointer cldata, cbdata;
 		bc->agpop = CreateDialog(bc->bw, "agpop",
 			BMOAddGroup, BMDAddGroup, BMOAddGroup, bc);
 	}
+
 	MyDialogSetValue(GetDialogWidget(bc->agpop), "");
 
 	XtPopup(bc->agpop, XtGrabNone);

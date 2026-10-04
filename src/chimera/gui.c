@@ -22,11 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-#include <X11/IntrinsicP.h>
-#include <X11/StringDefs.h>
-
-
 #include "ChimeraP.h"
 
 #include "WWWP.h"
@@ -61,11 +56,7 @@ static void GUISelect _ArgProto((Widget, void *, int, int, int));
 /*
  * GUIAddRender
  */
-void
-GUIAddRender(wd, wn)
-ChimeraGUI wd;
-ChimeraRender wn;
-{
+void GUIAddRender(ChimeraGUI wd, ChimeraRender wn) {
   wd->wn = wn;
   return;
 }
@@ -73,13 +64,8 @@ ChimeraRender wn;
 /*
  * GUICreate
  */
-ChimeraGUI
-GUICreate(wc, parent, size_callback, size_closure)
-ChimeraContext wc;
-ChimeraGUI parent;
-GUISizeCallback size_callback;
-void *size_closure;
-{
+ChimeraGUI GUICreate(ChimeraContext wc, ChimeraGUI parent,
+	GUISizeCallback size_callback, void *size_closure) {
   ChimeraGUI wd;
   MemPool mp;
 
@@ -110,51 +96,35 @@ void *size_closure;
 /*
  * GUIDestroy
  */
-void
-GUIDestroy(wd)
-ChimeraGUI wd;
-{
+void GUIDestroy(ChimeraGUI wd) {
   MemPool mp = wd->mp;
 
   if (wd->www != NULL) XtDestroyWidget(wd->www);
   if (wd->resize_task != NULL) TaskRemove(wd->wc->cres, wd->resize_task);
   memset(wd, 0, sizeof(struct ChimeraGUIP));
   MPDestroy(mp);
-
-  return;
 }
 
 /*
  * GUIToWindow
  */
-Window
-GUIToWindow(wd)
-ChimeraGUI wd;
-{
+Window GUIToWindow(ChimeraGUI wd) {
   return(XtWindow(WWWGetDrawWidget(wd->www)));
 }
 
 /*
  * GUIToDisplay
  */
-Display *
-GUIToDisplay(wd)
-ChimeraGUI wd;
-{
+Display *GUIToDisplay(ChimeraGUI wd) {
   return(XtDisplay(wd->www));
 }
 
 /*
  * GUICreateToplevel
  */
-ChimeraGUI
-GUICreateToplevel(wc, parent, size_callback, size_closure)
-ChimeraContext wc;
-Widget parent;
-GUISizeCallback size_callback;
-void *size_closure;
-{
-  ChimeraGUI wd;
+ChimeraGUI GUICreateToplevel(ChimeraContext wc, Widget parent,
+	GUISizeCallback size_callback, void *size_closure) {
+	ChimeraGUI wd;
   MemPool mp;
 
   mp = MPCreate();
@@ -167,8 +137,7 @@ void *size_closure;
   wd->size_closure = size_closure;
 
   wd->www = XtVaCreateManagedWidget("www_toplevel",
-				    wwwWidgetClass, parent,
-				    NULL);
+	  wwwWidgetClass, parent, XtNwidth, wd->wc->athena->width, XtNheight, wd->wc->athena->height, NULL);
 
   WWWSetResizeCallback(wd->www, GUIToplevelResize, wd);
   WWWSetSelectCallback(wd->www, GUISelect, wd);
@@ -181,23 +150,14 @@ void *size_closure;
 /*
  * GUISetScrollBar
  */
-void
-GUISetScrollBar(wd, use_scroll)
-ChimeraGUI wd;
-bool use_scroll;
-{
+void GUISetScrollBar(ChimeraGUI wd, bool use_scroll) {
   WWWSetScrollBar(wd->www, use_scroll);
-  return;
 }
 
 /*
  * GUIGetDimenions
  */
-int
-GUIGetDimensions(wd, width, height)
-ChimeraGUI wd;
-unsigned int *width, *height;
-{
+int GUIGetDimensions(ChimeraGUI wd, unsigned int *width, unsigned int *height) {
   if (!wd->size_set) return(-1);
   WWWGetDrawSize(wd->www, width, height);
   return(0);
@@ -206,28 +166,18 @@ unsigned int *width, *height;
 /*
  * GUISetDimensions
  */
-void
-GUISetDimensions(wd, width, height)
-ChimeraGUI wd;
-unsigned int width, height;
-{
+void GUISetDimensions(ChimeraGUI wd, unsigned int width, unsigned int height) {
   WWWSetDrawSize(wd->www, width, height);
-  return;
 }
 
-int
-GUIGetNamedColor(wd, name, pixel)
-ChimeraGUI wd;
-char *name;
-Pixel *pixel;
-{
+int GUIGetNamedColor(ChimeraGUI wd, char *name, Pixel *_pixel) {
   XColor sxc, exc;
   Display *dpy = XtDisplay(wd->www);
 
   XAllocNamedColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)),
                    name, &sxc, &exc);
 
-  *pixel = sxc.pixel;
+  *_pixel = sxc.pixel;
 
   return(0);
 }
@@ -235,50 +185,33 @@ Pixel *pixel;
 /*
  * GUIGetOnScreenDimensions
  */
-void
-GUIGetOnScreenDimensions(wd, x, y, width, height)
-ChimeraGUI wd;
-int *x, *y;
-unsigned int *width, *height;
-{
+void GUIGetOnScreenDimensions(ChimeraGUI wd, int *x, int *y, unsigned int *width, unsigned int *height) {
   WWWWidget rw = (WWWWidget)wd->www;
 
   *x = -(int)rw->www.child->core.x;
   *y = -(int)rw->www.child->core.y;
   *width = (unsigned int)rw->www.child->core.width;
   *height = (unsigned int)rw->www.clip->core.height;
-
-  return;
 }
 
 /*
  * GUIReset
  */
-void
-GUIReset(wd)
-ChimeraGUI wd;
-{
+void GUIReset(ChimeraGUI wd) {
   WWWWidget rw = (WWWWidget)wd->www;
 
   wd->wn = NULL;
   XClearWindow(XtDisplay(rw->www.child), XtWindow(rw->www.child));
   WWWMoveChild(wd->www, 0, 0);
   WWWSetDrawSize(wd->www, 0, 0);
-
-  return;
 }
 
 /*
  * GUIExpose
  */
-static void
-GUIExpose(w, closure, x, y, width, height)
-Widget w;
-void *closure;
-int x, y;
-unsigned int width, height;
-{
-  ChimeraGUI wd = (ChimeraGUI)closure;
+static void GUIExpose(Widget w, void *closure, int x, int y,
+	unsigned int width, unsigned int  height) {
+	ChimeraGUI wd = (ChimeraGUI)closure;
 
   if (wd->wn != NULL) RenderExpose(wd->wn, x, y, width, height);
 
@@ -288,13 +221,7 @@ unsigned int width, height;
 /*
  * GUISelect
  */
-static void
-GUISelect(w, closure, x, y, button)
-Widget w;
-void *closure;
-int x, y;
-int button;
-{
+static void GUISelect(Widget w, void *closure, int x, int y, int button) {
   ChimeraGUI wd = (ChimeraGUI)closure;
   char *action;
 
@@ -314,13 +241,7 @@ int button;
 /*
  * GUIMotion
  */
-static void
-GUIMotion(w, closure, x, y, button)
-Widget w;
-void *closure;
-int x, y;
-int button;
-{
+static void GUIMotion(Widget w, void *closure, int x, int y, int button) {
   ChimeraGUI wd = (ChimeraGUI)closure;
 
   if (wd->wn != NULL) RenderMotion(wd->wn, x, y);
@@ -331,12 +252,7 @@ int button;
 /*
  * GUIToplevelResize
  */
-void
-GUIToplevelResize(w, closure, junk)
-Widget w;
-void *closure;
-void *junk;
-{
+void GUIToplevelResize(Widget w, void *closure, void *junk) {
   ChimeraGUI wd = (ChimeraGUI)closure;
 
   if (wd->size_callback != NULL)
@@ -348,25 +264,18 @@ void *junk;
     wd->height = height;
     CMethod(wd->size_callback)(wd, wd->size_closure, wd->width, wd->height);
   }
-
-  return;
 }
 
 /*
  * GUIMap
  */
-void
-GUIMap(wd, x, y)
-ChimeraGUI wd;
-int x, y;
-{
-  if (!wd->size_set)
-  {
+void GUIMap(ChimeraGUI wd, int x, int y) {
+  if (!wd->size_set)   {
     fprintf (stderr, "GUIMap: GUI dimensions not set yet.\n");
     return;
   }
-  if (wd->position_set)
-  {
+
+  if (wd->position_set) {
     fprintf (stderr, "GUIMap: already mapped.\n");
     return;
   }
@@ -375,30 +284,21 @@ int x, y;
 		    (Dimension)wd->width, (Dimension)wd->height, 0);
 
   XtSetMappedWhenManaged(wd->www, True);
-
-  return;
 }
 
 /*
  * GUIUnmap
  */
-void
-GUIUnmap(wd)
-ChimeraGUI wd;
-{
+void GUIUnmap(ChimeraGUI wd) {
   XtSetMappedWhenManaged(wd->www, False);
   wd->size_set = false;
   wd->position_set = false;
-  return;
 }
 
 /*
  * ResizeTask
  */
-static void
-ResizeTask(closure)
-void *closure;
-{
+static void ResizeTask(void *closure) {
   ChimeraGUI wd = (ChimeraGUI)closure;
 
   if (wd->size_callback != NULL)
@@ -406,18 +306,12 @@ void *closure;
     wd->resize_task = NULL;
     CMethod(wd->size_callback)(wd, wd->size_closure, wd->width, wd->height);
   }
-
-  return;
 }
 
 /*
  * GUISetInitialDimensions
  */
-void
-GUISetInitialDimensions(wd, width, height)
-ChimeraGUI wd;
-unsigned int width, height;
-{
+void GUISetInitialDimensions(ChimeraGUI wd, unsigned int width, unsigned int height) {
   myassert(!wd->size_set, "GUISetInitialDimensions: dimensions already set");
 
   if (wd->resize_task != NULL) TaskRemove(wd->wc->cres, wd->resize_task);
@@ -430,41 +324,26 @@ unsigned int width, height;
   WWWSetDrawSize(wd->www, width, height);
 
   wd->resize_task = TaskSchedule(wd->wc->cres, ResizeTask, wd);
-
-  return;
 }
 
 /*
  * GUISetScrollPosition
  */
-void
-GUISetScrollPosition(wd, x, y)
-ChimeraGUI wd;
-int x, y;
-{
+void GUISetScrollPosition(ChimeraGUI wd, int x, int y) {
   WWWMoveChild(wd->www, x, y);
-  return;
 }
 
 /*
  * GUIGetScrollPosition
  */
-void
-GUIGetScrollPosition(wd, x, y)
-ChimeraGUI wd;
-int *x, *y;
-{
+void GUIGetScrollPosition(ChimeraGUI wd, int *x, int *y) {
   WWWGetScrollPosition(wd->www, x, y);
-  return;
 }
 
 /*
  * GUIBackgroundPixel
  */
-Pixel
-GUIBackgroundPixel(wd)
-ChimeraGUI wd;
-{
+Pixel GUIBackgroundPixel(ChimeraGUI wd) {
   Pixel bg;
   XtVaGetValues(wd->www, XtNbackground, &bg, NULL);
   return(bg);
@@ -473,9 +352,6 @@ ChimeraGUI wd;
 /*
  * GUIToWidget
  */
-Widget
-GUIToWidget(wd)
-ChimeraGUI wd;
-{
+Widget GUIToWidget(ChimeraGUI wd) {
   return(WWWGetDrawWidget(wd->www));
 }

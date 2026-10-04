@@ -67,6 +67,12 @@ int main(int argc, char **argv) {
 	getcwd(base_url + 5, sizeof(base_url) - 5);
 	strcat(base_url, "/");
 
+	ats_t ui = {0};
+	globalcres->ats = &ui;
+	globalcres->ats->app_con = globalcres->appcon;
+	globalcres->ats->dpy = globalcres->dpy;
+	ats_athena_set(globalcres->ats, icon_32x32, "Browser", 650, 500);
+
 	if (argc > 1)
 		HeadCreate(globalcres, RequestCreate(globalcres, argv[argc - 1], base_url), NULL);
 	else
@@ -75,7 +81,8 @@ int main(int argc, char **argv) {
 	/*
 	 * And away we go...
 	 */
-	XtAppMainLoop(globalcres->appcon);
+	ats_handler(globalcres->ats);
+	ats_close(globalcres->ats);
 	return 0;
 }
 
@@ -133,7 +140,6 @@ static void ChimeraCleanup(ChimeraResources cres) {
 	MPPrintStatus();
 	GListPrintStatus();
 
-	exit(0);
 }
 
 /*
@@ -141,8 +147,8 @@ static void ChimeraCleanup(ChimeraResources cres) {
  */
 void ChimeraRemoveReference(ChimeraResources cres) {
 	cres->refcount--;
-	if (cres->refcount == 0) ChimeraCleanup(cres);
-	return;
+	if (cres->refcount == 0)
+		ChimeraCleanup(cres);
 }
 
 static void DeleteAction(), ReturnAction();

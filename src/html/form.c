@@ -484,13 +484,7 @@ MLElement p;
 /*
  * CreateText
  */
-static void
-CreateText(fs, env, p, type)
-FormState *fs;
-HTMLEnv env;
-MLElement p;
-InputType type;
-{
+static void CreateText(FormState *fs, HTMLEnv env, MLElement p, InputType type) {
 	Widget w;
 	int width, height;
 	XFontStruct *font;
@@ -512,6 +506,8 @@ InputType type;
 		textfieldWidgetClass, fs->li->widget,
 		XtNecho, echo,
 		XtNlength, 500,
+		XtNborderColor, 0xDAA520,
+		XtNbackground, 0xffffff,
 		NULL);
 
 	if ((value = MLFindAttribute(p, "value")) != NULL) {
@@ -537,7 +533,7 @@ InputType type;
 	box = CreateInputBox(fs->li, env, ci, width, height);
 	ci->w = w;
 
-	return;
+	TextFieldAutoFocus(w);
 }
 
 /*

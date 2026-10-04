@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <athena.h>
 #include "ChimeraP.h"
 
 typedef struct

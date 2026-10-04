@@ -61,6 +61,7 @@ SOFTWARE.
 #include <athena.h>
 
 #include "AuthDialogP.h"
+#include <Xaw95/TraversalP.h>
 
 /*
  * After we have set the string in the value widget we set the
@@ -116,7 +117,7 @@ AuthDialogClassRec authdialogClassRec = {
     /* set_values_hook    */    NULL,
     /* set_values_almost  */    XtInheritSetValuesAlmost,
     /* get_values_hook    */    NULL,
-    /* accept_focus       */    NULL,
+	/* accept_focus       */    XawAcceptFocus,
     /* version            */    XtVersion,
     /* callback_private   */    NULL,
     /* tm_table           */    NULL,

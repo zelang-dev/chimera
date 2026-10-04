@@ -69,6 +69,7 @@ struct ChimeraContextP
 
   char *button1Box;           /* list of widgets in the first button box */
   char *button2Box;           /* list of widgets in the second button box */
+  ats_t *athena;				  /* `athena` handle */
 };
 
 /*
@@ -110,6 +111,7 @@ struct ChimeraResourcesP
   BookmarkContext  bc;                /* bookmark routines context */
   FILE             *logfp;            /* log file */
   int              refcount;          /* reference count */
+  ats_t 		   *ats;			  /* `athena` handle */
 };
 
 /*

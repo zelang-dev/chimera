@@ -24,9 +24,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include <athena.h>
-
 #include "common.h"
+#include <athena.h>
 
 #include "MyDialog.h"
 
@@ -44,6 +43,7 @@ static void ViewMark _ArgProto((Widget, XtPointer, XtPointer));
 static void Bookmark _ArgProto((Widget, XtPointer, XtPointer));
 static void Source _ArgProto((Widget, XtPointer, XtPointer));
 static void Save _ArgProto((Widget, XtPointer, XtPointer));
+static void Go _ArgProto((Widget, XtPointer, XtPointer));
 
 static void OOpen _ArgProto((Widget, XtPointer, XtPointer));
 static void DOpen _ArgProto((Widget, XtPointer, XtPointer));
@@ -53,7 +53,7 @@ static void OFind _ArgProto((Widget, XtPointer, XtPointer));
 static void DFind _ArgProto((Widget, XtPointer, XtPointer));
 static void Find _ArgProto((Widget, XtPointer, XtPointer));
 
-static void CreateWidgets _ArgProto((ChimeraContext, char *));
+static void CreateWidgets _ArgProto((ChimeraContext));
 
 static void AddButtons _ArgProto((ChimeraContext, Widget, char *));
 
@@ -174,70 +174,101 @@ static XtResource       resource_list[] =
  *
  * Setup chimera in a widget.
  */
-static void CreateWidgets(ChimeraContext wc, char *name) {
+static void CreateWidgets(ChimeraContext wc) {
 	Widget paned, box, form;
 	Atom delete;
 
-	wc->toplevel = XtVaAppCreateShell(name, "Chimera",
-		topLevelShellWidgetClass,
+	wc->toplevel = XtAppCreateShell(wc->athena->title, "Chimera",
+		mwApplicationShellWidgetClass,
 		wc->cres->dpy,
-		NULL);
+		NULL, 0);
 
+	MwInitFormat(wc->cres->dpy);
 	XtGetApplicationResources(wc->toplevel, wc,
 		resource_list, XtNumber(resource_list),
 		NULL, 0);
 
+	wc->athena->topLevel = wc->toplevel;
+
 /*
- * Main window pane
+ * Main window, Button and Menu pane
  */
-	paned = XtCreateManagedWidget("paned",
-		panedWidgetClass, wc->toplevel,
-		NULL, 0);
+	wc->athena->toolheight = 30;
+	ats_menubar_set(wc->athena, 2);
+	paned = wc->athena->grid;
+
+	static menuitem_t menu_items[] = {
+		{110, "Open", (_menu_cb)Open, "o", NULL},
+		{111, "Save", (_menu_cb)Save, "S", NULL},
+		{__ATS_SEPERATOR__},
+		{112, "Quit", (_menu_cb)Quit, "q", NULL},
+	};
+
+	static menuitem_t menu_items_two[] = {
+		{113, "Bookmark", (_menu_cb)Bookmark, "m", NULL},
+		{114, "Find", (_menu_cb)Find, "f", NULL},
+		{115, "Source", (_menu_cb)Source, "V", NULL},
+		{__ATS_SEPERATOR__},
+		{116, "Help", (_menu_cb)Help, "h", NULL},
+	};
+
+	wc->athena->bar_info->override = true;
+	wc->athena->bar_info->override_data = wc;
+	if (!ats_font_set(wc->athena, lucida)
+		|| !ats_menu_set(wc->athena, 0, menu_items, 4, 1, "File")
+		|| !ats_menu_set(wc->athena, 1, menu_items_two, 5, 2, "Tools")) {
+		fprintf(stderr, "Error: can't create `font` or `menu` items!\n");
+		return;
+	}
 
 /*
  * Button pane(s)
  */
-	if (wc->button1Box && *wc->button1Box) {
-		box = XtCreateManagedWidget("box1", boxWidgetClass, paned, NULL, 0);
-		AddButtons(wc, box, wc->button1Box);
-	}
-
-	if (wc->button2Box && *wc->button2Box) {
-		box = XtCreateManagedWidget("box2", boxWidgetClass, paned, NULL, 0);
-		AddButtons(wc, box, wc->button2Box);
-	}
+	box = ats_navigation_set(paned, 1);
+	wc->athena->app->app_data = (void *)wc;
+	ats_toolbar_set(wc->athena, box, Home, "home.xpm", "Home", true);
+	ats_toolbar_set(wc->athena, box, Back, "back.xpm", "Back", true);
+	//toolcmd = ats_toolbar_set(wc->athena, form, cb_forward, "forward.xpm", "Forward", true);
+	ats_toolbar_set(wc->athena, box, Reload, "reload.xpm", "Reload", true);
+	ats_toolbar_set(wc->athena, box, Cancel, "cancel.xpm", "Cancel", true);
+	ats_toolbar_set(wc->athena, box, Open, "fld_open.xpm", "Open", true);
+	form = ats_toolbar_set(wc->athena, box, Save, "save.xpm", "Save", true);
 
 	/*
 	 * URL pane
 	 */
-	form = XtVaCreateManagedWidget("urlform", formWidgetClass, paned, NULL);
-	XtVaCreateManagedWidget("urllabel", labelWidgetClass, form, NULL);
-	wc->url = XtVaCreateManagedWidget("url",
-		textfieldWidgetClass, form,
-		XtNstring, "",
-		NULL);
+	int numtools = 7;
+	wc->url = ats_textfield_set(box, "", 0, 1, (wc->athena->width - (38 * numtools)), 28);
+	ats_alignfield(wc->url, form, false);
 
+	form = ats_toolbar_set(wc->athena, box, Go, "preview.xpm", "Go", true);
+	ats_alignfield(form, wc->url, false);
 	XtOverrideTranslations(wc->url,
 		XtParseTranslationTable
 		("<Key>Return: ReturnAction()"));
 
 /*
- * Message pane.
- */
-	box = XtCreateManagedWidget("box4", boxWidgetClass, paned, NULL, 0);
-	wc->message = XtVaCreateManagedWidget("message",
-		textfieldWidgetClass, box,
-		NULL);
-
-/*
  * WWW widget
  */
+	box = ats_mainarea_set(wc->athena, paned, 2);
+
+/*
+ * Message `statusline` pane.
+ */
+	wc->message = ats_status_set(paned, "", 3, 500, 10);
+	ats_alignfield(wc->message, box, false);
+
+	paned = ats_viewport_set(box, false, false);
 	wc->tstack = StackCreateToplevel(wc, paned);
 
 	XtRealizeWidget(wc->toplevel);
 
-	delete = XInternAtom(XtDisplay(wc->toplevel), "WM_DELETE_WINDOW", False);
-	XSetWMProtocols(wc->cres->dpy, XtWindow(wc->toplevel), &delete, 1);
+	wc->athena->win = XtWindow(wc->athena->topLevel);
+	wc->athena->screen = DefaultScreen(wc->athena->dpy);
+	ats_icon_set(wc->athena, "athena.xpm");
+
+	wc->athena->wmDeleteMessage = XInternAtom(XtDisplay(wc->toplevel), "WM_DELETE_WINDOW", False);
+	XSetWMProtocols(wc->cres->dpy, wc->athena->win, &wc->athena->wmDeleteMessage, 1);
 	XtOverrideTranslations(wc->toplevel,
 		XtParseTranslationTable
 		("<Message>WM_PROTOCOLS: DeleteAction()"));
@@ -246,8 +277,6 @@ static void CreateWidgets(ChimeraContext wc, char *name) {
  * Accelerators
  */
 	InstallAccelerators(paned);
-
-	return;
 }
 
 /*
@@ -256,12 +285,12 @@ static void CreateWidgets(ChimeraContext wc, char *name) {
 void HeadDestroy(ChimeraContext wc) {
 	StackDestroy(wc->tstack);
 	GListRemoveItem(wc->cres->heads, wc);
-	XtDestroyWidget(wc->toplevel);
+	ats_t *ui = wc->athena;
+	ats_cancel(ui->topLevel);
+	//XtDestroyWidget(wc->toplevel);
 	MPDestroy(wc->mp);
-
 	ChimeraRemoveReference(wc->cres);
-
-	return;
+	ui->app_con = NULL;
 }
 
 /*
@@ -325,8 +354,6 @@ static void OOpen(Widget ww, XtPointer cldata, XtPointer cbdata) {
 
 	StackOpen(wc->tstack, RequestCreate(wc->cres, url, NULL));
 	XtPopdown(wc->openpop);
-
-	return;
 }
 
 /*
@@ -335,7 +362,6 @@ static void OOpen(Widget ww, XtPointer cldata, XtPointer cbdata) {
 static void DOpen(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	XtPopdown(wc->openpop);
-	return;
 }
 
 /*
@@ -347,10 +373,9 @@ static void Open(Widget w, XtPointer cldata, XtPointer cbdata) {
 	if (wc->openpop == NULL) {
 		wc->openpop = CreateDialog(wc->toplevel, "openpop",
 			OOpen, DOpen, OOpen, (XtPointer)wc);
+		MwSetIcon(wc->openpop, icon_32x32);
 	}
 	XtPopup(wc->openpop, XtGrabNone);
-
-	return;
 }
 
 /*
@@ -359,7 +384,6 @@ static void Open(Widget w, XtPointer cldata, XtPointer cbdata) {
 static void Back(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	StackBack(wc->tstack);
-	return;
 }
 
 /*
@@ -368,7 +392,6 @@ static void Back(Widget w, XtPointer cldata, XtPointer cbdata) {
 static void Reload(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	StackReload(wc->tstack);
-	return;
 }
 
 /*
@@ -378,7 +401,6 @@ static void
 Cancel(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	StackCancel(wc->tstack);
-	return;
 }
 
 /*
@@ -386,7 +408,6 @@ Cancel(Widget w, XtPointer cldata, XtPointer cbdata) {
  */
 static void Quit(Widget w, XtPointer cldata, XtPointer cbdata) {
 	HeadDestroy((ChimeraContext)cldata);
-	return;
 }
 
 /*
@@ -401,8 +422,6 @@ static void Source(Widget w, XtPointer cldata, XtPointer cbdata) {
 		else StackSetRender(wc->tstack, NULL);
 		StackRedraw(wc->tstack);
 	}
-
-	return;
 }
 
 /*
@@ -420,8 +439,6 @@ static void Save(Widget w, XtPointer cldata, XtPointer cbdata) {
 		return;
 	}
 	DownloadOpen(wc->cres, wr);
-
-	return;
 }
 
 /*
@@ -430,7 +447,6 @@ static void Save(Widget w, XtPointer cldata, XtPointer cbdata) {
 static void Home(Widget w, XtPointer cldata, XtPointer cbdata) {
 	ChimeraContext wc = (ChimeraContext)cldata;
 	StackHome(wc->tstack);
-	return;
 }
 
 /*
@@ -443,8 +459,6 @@ static void Help(Widget w, XtPointer cldata, XtPointer cbdata) {
 	if ((url = ResourceGetString(wc->cres, "chimera.helpURL")) != NULL) {
 		StackOpen(wc->tstack, RequestCreate(wc->cres, url, NULL));
 	}
-
-	return;
 }
 
 /*
@@ -464,8 +478,26 @@ static void Dup(Widget w, XtPointer cldata, XtPointer cbdata) {
 	else wr = NULL;
 
 	HeadCreate(wc->cres, NULL, wr);
+}
 
-	return;
+static void Go(Widget w, XtPointer cldata, XtPointer cbdata) {
+	ChimeraResources globalcres = ((ChimeraContext)cldata)->cres;
+	ChimeraContext c;
+	char *url;
+
+	for (c = (ChimeraContext)GListGetHead(globalcres->heads); c != NULL;
+		c = (ChimeraContext)GListGetNext(globalcres->heads)) {
+		if (c->url == w) {
+			url = TextFieldGetString(c->url);
+			if (url == NULL || url[0] == '\0') {
+				TextFieldSetString(c->url, url);
+				break;
+			} else {
+				StackOpen(c->tstack, RequestCreate(globalcres, url, NULL));
+			}
+			break;
+		}
+	}
 }
 
 /*
@@ -562,10 +594,10 @@ static void Find(Widget w, XtPointer cldata, XtPointer cbdata) {
 	if (wc->findpop == NULL) {
 		wc->findpop = CreateDialog(wc->toplevel, "findpop",
 			OFind, DFind, OFind, (XtPointer)wc);
+
+		MwSetIcon(wc->findpop, icon_32x32);
 	}
 	XtPopup(wc->findpop, XtGrabNone);
-
-	return;
 }
 
 /*
@@ -595,12 +627,13 @@ void HeadCreate(ChimeraResources cres, ChimeraRequest *first, ChimeraRequest *la
 
 	mp = MPCreate();
 	wc = (ChimeraContext)MPCGet(mp, sizeof(struct ChimeraContextP));
+	wc->athena = cres->ats;
 	wc->mp = mp;
 	wc->cres = cres;
 
 	GListAddHead(cres->heads, wc);
 
-	CreateWidgets(wc, "chimera");
+	CreateWidgets(wc);
 
 	/*
 	 * If an override URL is supplied then try to use that.

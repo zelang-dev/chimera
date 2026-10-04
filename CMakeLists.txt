@@ -56,9 +56,8 @@ else()
 	find_package(athena QUIET)
 	if(NOT athena_FOUND)
 		FetchContent_Declare(athena
-			URL https://github.com/zelang-dev/athena/archive/refs/heads/main.zip
-			#URL https://github.com/zelang-dev/athena/archive/refs/tags/v0.5.0.zip
-			#URL_MD5 6e9756dee0ef5903d850dc021d5df725
+			URL https://github.com/zelang-dev/athena/archive/refs/tags/0.5.5.zip
+			URL_MD5 cab87a4d3c3287c492a8e0916f2ebbdc
 		)
 		FetchContent_MakeAvailable(athena)
 	endif()

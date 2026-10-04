@@ -21,20 +21,12 @@
 
 char *fallback_resources[] =
 {
-  "*background:                moccasin",
-  "*showGrip:                  false",
-
-  "*Scrollbar.background:      burlywood2",
   "*Command.background:        burlywood2",
   "*Toggle.background:         burlywood2",
   "*MenuButton.background:     burlywood2",
   "*SimpleMenu.background:     burlywood2",
   "*SmeBSB.background:         burlywood2",
-  "*Box.orientation:           horizontal",
   "*Label.borderWidth:         0",
-
-  "*allowHoriz:                true",
-  "*allowVert:                 true",
 
   /* labels for commands */
   "*open.label:                Open",
@@ -56,15 +48,6 @@ char *fallback_resources[] =
   "*mlabel.label:              Mark",
   "*glabel.label:              Groups",
   "*dismiss.label:             Dismiss",
-
-  "*www_toplevel.height:       600",
-  "*www_toplevel.width:        650",
-
-  /* message widget */
-  "*message.width:             600",
-  "*message.editable:          false",
-  "*message.displayCaret:      false",
-  "*message.borderWidth:       0",
 
   /* bookmark */
   "*grouplist.defaultColumns:  1",
@@ -89,17 +72,8 @@ char *fallback_resources[] =
   "*agpop.dialog.label:        Enter Group Name",
   "*ampop.dialog.label:        Enter Mark Name",
 
-  "*urllabel.label:            URL:",
-  "*urllabel.left:             ChainLeft",
-  "*urllabel.right:            ChainLeft",
-  "*url.left:                  ChainLeft",
-  "*url.right:                 ChainRight",
-  "*url.fromHoriz:             urllabel",
-
   "*Label.font: -*-lucidatypewriter-medium-r-normal-*-*-120-*-*-*-*-iso8859-1",
   "*Text.font:  -*-lucidatypewriter-medium-r-normal-*-*-120-*-*-*-*-iso8859-1",
-  "*Command.font: -*-lucida-bold-r-normal-sans-*-120-*-*-*-*-iso8859-1",
-  "*Toggle.font:  -*-lucida-bold-r-normal-sans-*-120-*-*-*-*-iso8859-1",
 
   NULL
 };

@@ -301,5 +301,5 @@ ChimeraRequest *wr;
     RequestDestroy(wr);
   }
 
-  return;
+  MwSetIcon(di->pop, icon_32x32);
 }
